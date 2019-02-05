@@ -1,13 +1,13 @@
 # Using availability sets instead of zones 
-resource "azurerm_core" "tf_web_attach" {
+resource "azurerm_core_volume" "web_block" {
   name     = "jdeweb"
   location = "East US"
 }
 
-resource "azurerm_availability_set" "tf_web_attach" {
+resource "azurerm_availability_set" "web_block" {
   name                = "acceptanceTestAvailabilitySet1"
-  location            = "${azurerm_core.tf_web_attach.location}"
-  resource_group_name = "${azurerm_core.tf_web_attach.name}"
+  location            = "${azurerm_core_volume.web_block.location}"
+  resource_group_name = "${azurerm_core_volume.web_block.name}"
 
   tags {
     environment = "Production"
