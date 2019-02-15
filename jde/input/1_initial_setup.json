@@ -1,0 +1,15 @@
+{
+    
+    "vnet_cidr": "192.168.0.0/16",
+    "vnet_name": "jde_az_vnet",
+    "vm_sku": "Standard_DS1_v2",
+    "number_of_instances": "2",
+    "vm_os_publisher": "Oracle",
+    "vm_os_offer": "Oracle-Linux",
+    "vm_os_sku": "7.6",
+    "vm_os_version": "latest",
+    "db_publisher": "Oracle",
+    "db_offer": "Oracle-Database-Ee",
+    "db_sku": "7.6",
+    "db_version": "latest"
+}
