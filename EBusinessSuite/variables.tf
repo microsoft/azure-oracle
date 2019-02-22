@@ -5,6 +5,10 @@ variable "vm_hostname" {
 variable "resource_group_name" {
     default = "ebs-rg"
 }
+variable "lb_sku" {
+    default = "Standard"
+
+}
 variable "location" {
     description = "Azure region"
 }
@@ -51,7 +55,7 @@ variable "data_disk_size_gb" {
     default = 128
 }
 variable "data_sa_type" {
-    default = "Premium_LRS"
+    default = "Standard_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"

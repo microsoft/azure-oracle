@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "ebs-rg" {
 module "create_vnet" {
   source  = "./modules/network/vnet"
 
-  resource_group_name    = "${var.resource_group_name}"
+  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
   location               = "${var.location}"
   vnet_cidr              = "${var.vnet_cidr}"
   vnet_name              = "${var.vnet_name}"
@@ -27,15 +27,16 @@ module "create_vnet" {
 module "bastion_subnet" {
   source  = "./modules/network/subnets"
 
-  resource_group_name  = "${var.resource_group_name}"
+  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {bastion = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"}
+  
 }
 # Create Application subnet
 module "app_subnet" {
   source  = "./modules/network/subnets"
 
-  resource_group_name  = "${var.resource_group_name}"
+  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
@@ -60,7 +61,7 @@ module "create_app" {
   source  = "./modules/compute"
 
   vm_hostname               = "${var.vm_hostname}"
-  resource_group_name       = "${var.resource_group_name}"
+  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
   compute_hostname_prefix   = "${var.compute_hostname_prefix}"
@@ -78,25 +79,23 @@ module "create_app" {
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
-  nb_instances              = "${var.nb_instances}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
-  vnet_subnet_id            = "${element(module.app_subnet.subnet_ids, 0)}"
+  vnet_subnet_id            = "${element(values(module.app_subnet.subnet_ids), 0)}"
+  backendpool_id            = "${module.ebslb.backendpool_id}"
   #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
 }
 
-/* # Create Load Balancer
-module "create_lb" {
-  source  = "./modules/loadbalancer"
+# Create Load Balancer
+module "ebslb" {
+  source              = "./modules/load balancer"
+  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
+  location            = "${var.location}"
+  prefix              = "ebs"
+  lb_sku              = "${var.lb_sku}"
+  frontend_subnet_id  = "${element(values(module.app_subnet.subnet_ids), 0)}"
+  tags                = "${var.tags}"
 
-  compartment_ocid              = "${var.compartment_ocid}"
-  AD                            = "${var.AD}"
-  availability_domain           = ["${data.template_file.deployment_ad.*.rendered}"]
-  load_balancer_shape           = "${var.load_balancer_shape}"
-  load_balancer_subnet          = ["${module.lb_subnet.subnetid}"]
-  load_balancer_name            = "${var.ebs_env_prefix}lb${substr(var.region, 3, 3)}"
-  load_balancer_hostname        = "${var.load_balancer_hostname}"
-  load_balancer_listen_port     = "${var.load_balancer_listen_port}"
-  compute_instance_listen_port  = "${var.ebs_app_instance_listen_port}"
-  compute_instance_count        = "${var.ebs_app_instance_count}"
-  be_ip_addresses               = ["${module.create_app.AppsPrvIPs}"]
-} */
+  "lb_port" {
+    http = ["8080", "Tcp", "8888"]
+  }
+}
