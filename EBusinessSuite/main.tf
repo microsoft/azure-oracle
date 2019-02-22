@@ -1,26 +1,15 @@
-/*
-locals {
-  // VNET is /16
-  subnet_bits = 8   # want 256 entries per subnet.
-  vnet_cidr_increase = "${32 - element(split("/",var.vnet_cidr),1) - local.subnet_bits}"
-  bastion_subnet_prefix = "${cidrsubnet("${var.vnet_cidr}", 6, 0)}"
-  lb_subnet_prefix      = "${cidrsubnet("${var.vnet_cidr}", 6, 1)}"
-  app_subnet_prefix     = "${cidrsubnet("${var.vnet_cidr}", 6, 2)}"
-  db_subnet_prefix      = "${cidrsubnet("${var.vnet_cidr}", 6, 3)}"
-}
-*/
+# ebs/main.tf
 
 locals {
-    ## Key = subnet name, Value = CIDR prefixes e.g., 2.2.2.0/28)
-    subnetBits = 8   # want 256 entries per subnet.
+    subnet_bits = 8   # want 256 entries per subnet.
     # determine difference between VNET CIDR bits and that size subnetBits.
-    vnetCidrIncrease = "${32 - element(split("/",var.vnet_cidr),1) - local.subnetBits}"
+    vnet_cidr_increase = "${32 - element(split("/",var.vnet_cidr),1) - local.subnet_bits}"
     subnetPrefixes = {
-        application     = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 1)}"
-        database        = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 2)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 3)}"
-     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 4)}"
-     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 5)}"
+        application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
+        database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
+     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
+     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
     }
 
     #####################
