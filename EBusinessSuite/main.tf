@@ -84,22 +84,38 @@ locals {
     ##########################################
   #  needAVSets = [ "presentation", "application" ]
 }
-# Create Resource Group
-resource "azurerm_resource_group" "ebs-rg" {
-    name     = "${var.resource_group_name}"
-    location = "${var.location}"
- }
 
-# Create Virtual Network (VNET)
-module "create_vnet" {
-  source  = "./modules/network/vnet"
 
-  resource_group_name    = "${var.resource_group_name}"
-  location               = "${var.location}"
-  vnet_cidr              = "${var.vnet_cidr}"
-  vnet_name              = "${var.vnet_name}"
+
+############################################################################################
+# Create a resource group
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.resource_group_name}"
+  location = "${var.deployment_location}"
 }
 
+############################################################################################
+# Create the VNET
+module "create_vnet" {
+    source = "./modules/network/vnet"
+
+    vnet_name           = "${var.vnet_name}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.deployment_location}"
+    vnet_cidr           = "${var.vnet_cidr}"
+}
+
+############################################################################################
+# Create each of the subnets
+module "create_subnets" {
+    source = "./modules/network/subnets"
+
+    subnet_cidr_map = "${local.subnetPrefixes}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${module.create_vnet.vnet_name}"
+}
+
+/*
 # Create bastion host subnet
 module "bastion_subnet" {
   source  = "./modules/network/subnets"
@@ -116,6 +132,7 @@ module "app_subnet" {
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
+*/
 
 ###############################################################
 # Create each of the Network Security Groups
@@ -153,7 +170,6 @@ module "create_networkSGsForDatabase" {
     inboundOverrides  = "${local.database_sr_inbound}"
     outboundOverrides = "${local.database_sr_outbound}"
 }
-
 
 /* 
 # Create bastion host
