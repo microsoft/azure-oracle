@@ -117,6 +117,44 @@ module "app_subnet" {
   subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
 
+###############################################################
+# Create each of the Network Security Groups
+###############################################################
+
+module "create_networkSGsForBastion" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "bastion_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["bastion"]}"
+    inboundOverrides  = "${local.bastion_sr_inbound}"
+    outboundOverrides = "${local.bastion_sr_outbound}"
+}
+
+module "create_networkSGsForApplication" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "application_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["application"]}"
+    inboundOverrides  = "${local.application_sr_inbound}"
+    outboundOverrides = "${local.application_sr_outbound}"
+}
+
+module "create_networkSGsForDatabase" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "database_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["database"]}"
+    inboundOverrides  = "${local.database_sr_inbound}"
+    outboundOverrides = "${local.database_sr_outbound}"
+}
+
+
 /* 
 # Create bastion host
 module "create_bastion" {
