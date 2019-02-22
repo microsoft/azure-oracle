@@ -1,6 +1,7 @@
-
 locals {
   // VNET is /16
+  subnet_bits = 8   # want 256 entries per subnet.
+  vnet_cidr_increase = "${32 - element(split("/",var.vnet_cidr),1) - local.subnet_bits}"
   bastion_subnet_prefix = "${cidrsubnet("${var.vnet_cidr}", 6, 0)}"
   lb_subnet_prefix      = "${cidrsubnet("${var.vnet_cidr}", 6, 1)}"
   app_subnet_prefix     = "${cidrsubnet("${var.vnet_cidr}", 6, 2)}"
@@ -28,12 +29,7 @@ module "bastion_subnet" {
 
   resource_group_name  = "${var.resource_group_name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
-  subnet_cidr_map      =  [
-    "${cidrsubnet(local.bastion_subnet_prefix, 2, 0)}",
-    "${cidrsubnet(local.bastion_subnet_prefix, 2, 1)}",
-    "${cidrsubnet(local.bastion_subnet_prefix, 2, 2)}",
-  ]
-
+  subnet_cidr_map      =  {bastion = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"}
 }
 # Create Application subnet
 module "app_subnet" {
@@ -41,11 +37,7 @@ module "app_subnet" {
 
   resource_group_name  = "${var.resource_group_name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
-  subnet_cidr_map      =  [
-    "${cidrsubnet(local.app_subnet_prefix, 2, 0)}",
-    "${cidrsubnet(local.app_subnet_prefix, 2, 1)}",
-    "${cidrsubnet(local.app_subnet_prefix, 2, 2)}",
-  ]
+  subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
 
 /* 
@@ -82,12 +74,14 @@ module "create_app" {
   compute_boot_volume_size_in_gb    = "${var.compute_boot_volume_size_in_gb}"
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
+  admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
   nb_instances              = "${var.nb_instances}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
-  vnet_subnet_id            = ["${element(module.app_subnet.subnetid, 0)}"]
+  vnet_subnet_id            = "${element(module.app_subnet.subnet_ids, 0)}"
+  #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
 }
 
 /* # Create Load Balancer

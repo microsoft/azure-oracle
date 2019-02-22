@@ -9,7 +9,13 @@ variable "location" {
     description = "Azure region"
 }
 variable "tags" {
+  type = "map"
+
+  default = {
+    application = "Oracle EBusinessSuite"
+  }
 }
+
 variable "compute_hostname_prefix" {
   description = "Application hostname prefix"
   default = "app"
@@ -45,7 +51,7 @@ variable "data_disk_size_gb" {
     default = 128
 }
 variable "data_sa_type" {
-    default = "Premium_SDD"
+    default = "Premium_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"
@@ -55,7 +61,8 @@ variable "admin_password" {
 variable "custom_data" {
 }
 variable "compute_ssh_public_key" {
-  description = "SSH public key"
+  description = "Path to the public key to be used for ssh access to the VM."
+  default     = "~/.ssh/id_rsa.pub"
 }
 variable "nb_instances" {
     default = 1
@@ -69,9 +76,6 @@ variable "vnet_name" {
 variable "vnet_cidr" {
     default = "10.2.0.0/16"
 }
-variable "subnet_cidr_map" {
-    description = "Map with Key = SubnetName, Value = subnet CIDR (address prefix)"
-    type = "map"
-}
+
 
 
