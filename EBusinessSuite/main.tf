@@ -133,6 +133,7 @@ module "create_bastion" {
   }
  */
 # Create Application server
+/*
 module "create_app" {
   source  = "./modules/compute"
 
