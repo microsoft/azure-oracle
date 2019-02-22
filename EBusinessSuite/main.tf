@@ -1,26 +1,15 @@
-/*
-locals {
-  // VNET is /16
-  subnet_bits = 8   # want 256 entries per subnet.
-  vnet_cidr_increase = "${32 - element(split("/",var.vnet_cidr),1) - local.subnet_bits}"
-  bastion_subnet_prefix = "${cidrsubnet("${var.vnet_cidr}", 6, 0)}"
-  lb_subnet_prefix      = "${cidrsubnet("${var.vnet_cidr}", 6, 1)}"
-  app_subnet_prefix     = "${cidrsubnet("${var.vnet_cidr}", 6, 2)}"
-  db_subnet_prefix      = "${cidrsubnet("${var.vnet_cidr}", 6, 3)}"
-}
-*/
+# ebs/main.tf
 
 locals {
-    ## Key = subnet name, Value = CIDR prefixes e.g., 2.2.2.0/28)
-    subnetBits = 8   # want 256 entries per subnet.
+    subnet_bits = 8   # want 256 entries per subnet.
     # determine difference between VNET CIDR bits and that size subnetBits.
-    vnetCidrIncrease = "${32 - element(split("/",var.vnet_cidr),1) - local.subnetBits}"
+    vnet_cidr_increase = "${32 - element(split("/",var.vnet_cidr),1) - local.subnet_bits}"
     subnetPrefixes = {
-        application     = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 1)}"
-        database        = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 2)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 3)}"
-     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 4)}"
-     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnetCidrIncrease, 5)}"
+        application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
+        database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
+     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
+     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
     }
 
     #####################
@@ -95,22 +84,28 @@ locals {
     ##########################################
   #  needAVSets = [ "presentation", "application" ]
 }
-# Create Resource Group
-resource "azurerm_resource_group" "ebs-rg" {
-    name     = "${var.resource_group_name}"
-    location = "${var.location}"
- }
 
-# Create Virtual Network (VNET)
-module "create_vnet" {
-  source  = "./modules/network/vnet"
 
-  resource_group_name    = "${var.resource_group_name}"
-  location               = "${var.location}"
-  vnet_cidr              = "${var.vnet_cidr}"
-  vnet_name              = "${var.vnet_name}"
+
+############################################################################################
+# Create a resource group
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.resource_group_name}"
+  location = "${var.deployment_location}"
 }
 
+############################################################################################
+# Create the VNET
+module "create_vnet" {
+    source = "./modules/network/vnet"
+
+    vnet_name           = "${var.vnet_name}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.deployment_location}"
+    vnet_cidr           = "${var.vnet_cidr}"
+}
+
+/*
 # Create bastion host subnet
 module "bastion_subnet" {
   source  = "./modules/network/subnets"
@@ -127,7 +122,59 @@ module "app_subnet" {
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
+*/
 
+###############################################################
+# Create each of the Network Security Groups
+###############################################################
+
+module "create_networkSGsForBastion" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "bastion_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["bastion"]}"
+    inboundOverrides  = "${local.bastion_sr_inbound}"
+    outboundOverrides = "${local.bastion_sr_outbound}"
+}
+
+module "create_networkSGsForApplication" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "application_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["application"]}"
+    inboundOverrides  = "${local.application_sr_inbound}"
+    outboundOverrides = "${local.application_sr_outbound}"
+}
+
+module "create_networkSGsForDatabase" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name = "database_nsg"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location = "${var.deployment_location}"
+    subnet_id = "${module.create_subnets.subnet_names["database"]}"
+    inboundOverrides  = "${local.database_sr_inbound}"
+    outboundOverrides = "${local.database_sr_outbound}"
+}
+
+############################################################################################
+# Create each of the subnets
+module "create_subnets" {
+    source = "./modules/network/subnets"
+
+    subnet_cidr_map = "${local.subnetPrefixes}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${module.create_vnet.vnet_name}"
+    nsg_ids = "${zipmap(
+        list("bastion", "database", "application"),
+        list(module.create_networkSGsForBastion.nsg_id,
+             module.create_networkSGsForDatabase.nsg_id,
+             module.create_networkSGsForApplication.nsg_id))}"
+}
 /* 
 # Create bastion host
 module "create_bastion" {
@@ -144,6 +191,7 @@ module "create_bastion" {
   }
  */
 # Create Application server
+/*
 module "create_app" {
   source  = "./modules/compute"
 

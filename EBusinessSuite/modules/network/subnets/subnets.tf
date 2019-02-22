@@ -4,5 +4,6 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = "${var.resource_group_name}"
   virtual_network_name = "${var.vnet_name}"
   address_prefix       = "${element(values(var.subnet_cidr_map),count.index)}"
+  network_security_group_id = "${element(values(var.nsg_ids),count.index)}"
   count = "${length(var.subnet_cidr_map)}"
 }

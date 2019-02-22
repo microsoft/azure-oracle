@@ -1,3 +1,12 @@
+variable "tenant_id" {
+    description = "Azure AD Tenant GUID for the provisioning subscription. e.g., 33311334-86f1-43af-91ab-2d7cd011d123"
+}
+
+variable "subscription_id" {
+    description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
+}
+
+
 variable "vm_hostname" {
   description = "VM Hostname"
   default = "appvm"
@@ -5,7 +14,7 @@ variable "vm_hostname" {
 variable "resource_group_name" {
     default = "ebs-rg"
 }
-variable "location" {
+variable "deployment_location" {
     description = "Azure region"
 }
 variable "tags" {
@@ -76,6 +85,8 @@ variable "vnet_name" {
 variable "vnet_cidr" {
     default = "10.2.0.0/16"
 }
+
+
 
 
 
