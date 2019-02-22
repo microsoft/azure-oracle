@@ -105,16 +105,6 @@ module "create_vnet" {
     vnet_cidr           = "${var.vnet_cidr}"
 }
 
-############################################################################################
-# Create each of the subnets
-module "create_subnets" {
-    source = "./modules/network/subnets"
-
-    subnet_cidr_map = "${local.subnetPrefixes}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${module.create_vnet.vnet_name}"
-}
-
 /*
 # Create bastion host subnet
 module "bastion_subnet" {
@@ -171,6 +161,20 @@ module "create_networkSGsForDatabase" {
     outboundOverrides = "${local.database_sr_outbound}"
 }
 
+############################################################################################
+# Create each of the subnets
+module "create_subnets" {
+    source = "./modules/network/subnets"
+
+    subnet_cidr_map = "${local.subnetPrefixes}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${module.create_vnet.vnet_name}"
+    nsg_ids = "${zipmap(
+        list("bastion", "database", "application"),
+        list(module.create_networkSGsForBastion.nsg_id,
+             module.create_networkSGsForDatabase.nsg_id,
+             module.create_networkSGsForApplication.nsg_id))}"
+}
 /* 
 # Create bastion host
 module "create_bastion" {

@@ -14,7 +14,7 @@ variable "vm_hostname" {
 variable "resource_group_name" {
     default = "ebs-rg"
 }
-variable "location" {
+variable "deployment_location" {
     description = "Azure region"
 }
 variable "tags" {
