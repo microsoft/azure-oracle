@@ -1,8 +1,8 @@
 {
     
     "vnet_cidr": "192.168.0.0/16",
-    "vnet_name": "jde_az_vnet",
-    "vm_sku": "Standard_DS1_v2",
+    "vnet_name": "jde_az_vnet_1",
+    "vm_sku": "Standard_D2S_v3",
     "number_of_instances": "2",
     "vm_os_publisher": "Oracle",
     "vm_os_offer": "Oracle-Linux",
@@ -11,5 +11,11 @@
     "db_publisher": "Oracle",
     "db_offer": "Oracle-Database-Ee",
     "db_sku": "7.6",
-    "db_version": "latest"
+    "db_version": "latest",
+    "number_of_data_disks": "3",
+    "size_of_data_disks_in_gb": "1024",
+    "data_disks_sku": "Standard_LRS",
+    "number_of_redo_log_disks": "1",
+    "size_of_redo_log_disks_in_gb": "1024",
+    "redo_log_disks_sku": "Standard_LRS"
 }

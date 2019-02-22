@@ -684,9 +684,31 @@ module "create_middle_tier" {
 }
 
 # Create DB Tier
-/*
+
 module "create_db_tier" {
     source = "./db"
 
-    
-}*/
+    instance_count = "${var.number_of_instances}"
+    location = "${var.deployment_location}"
+    resource_group_name = "${azurerm_resource_group.jde-rg.name}"
+    nic_name = "db_tier_nic"
+    nsg_id = "${module.db_nsg.nsg_id}"
+    ip_config_name = "db_tier_ip_config"
+    subnet_id = "${module.create_db_tier_subnet.subnet_id}"
+    vm_name = "DBTierServer"
+    vm_size = "${var.vm_sku}"
+    availability_set_id = "${azurerm_availability_set.db_tier_as.id}"
+    vm_os_disk_size_in_gb = "60"
+    os_publisher = "${var.db_publisher}"
+    os_offer = "${var.db_offer}"
+    os_sku = "${var.db_sku}"
+    os_version = "${var.db_version}"
+    vm_admin_username = "${var.vm_admin_username}"
+    vm_admin_password = "${var.vm_admin_password}"
+    number_of_data_disks = "${var.number_of_data_disks}"
+    size_of_data_disks_in_gb = "${var.size_of_data_disks_in_gb}"
+    data_disks_sku = "${var.data_disks_sku}"
+    number_of_redo_log_disks = "${var.number_of_redo_log_disks}"
+    size_of_redo_log_disks_in_gb = "${var.size_of_redo_log_disks_in_gb}"
+    redo_log_disks_sku = "${var.redo_log_disks_sku}"
+}

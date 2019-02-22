@@ -35,3 +35,9 @@ variable db_publisher {}
 variable db_offer {}
 variable db_sku {}
 variable db_version {}
+variable "number_of_data_disks" {}
+variable "size_of_data_disks_in_gb" {}
+variable "data_disks_sku" {}
+variable "number_of_redo_log_disks" {}
+variable "size_of_redo_log_disks_in_gb" {}
+variable "redo_log_disks_sku" {}
