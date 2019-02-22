@@ -124,7 +124,7 @@ resource "azurerm_network_interface" "compute" {
   name                          = "${var.compute_hostname_prefix}${count.index + 1}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
-  network_security_group_id     = "${azurerm_network_security_group.vm.id}" #shawn
+  #TODO network_security_group_id     = "${var.network_security_group_id}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
 
   ip_configuration {
