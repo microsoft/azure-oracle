@@ -7,9 +7,7 @@ locals {
     subnetPrefixes = {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
-     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
-     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}
     }
 
     #####################
@@ -85,8 +83,6 @@ locals {
   #  needAVSets = [ "presentation", "application" ]
 }
 
-
-
 ############################################################################################
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
@@ -95,7 +91,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 ############################################################################################
-# Create the VNET
+# Create the virtual network
 module "create_vnet" {
     source = "./modules/network/vnet"
 
@@ -176,6 +172,7 @@ module "create_subnets" {
              module.create_networkSGsForApplication.nsg_id))}"
 }
 /* 
+###################################################
 # Create bastion host
 module "create_bastion" {
   source  = "./modules/bastion"
@@ -190,8 +187,8 @@ module "create_bastion" {
   bastion_ssh_public_key  = "${var.bastion_ssh_public_key}"
   }
  */
+###################################################
 # Create Application server
-/*
 module "create_app" {
   source  = "./modules/compute"
 
@@ -214,17 +211,17 @@ module "create_app" {
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
-  nb_instances              = "${var.nb_instances}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
-  vnet_subnet_id            = "${element(module.app_subnet.subnet_ids, 0)}"
+  vnet_subnet_id            = "${element(values(module.app_subnet.subnet_ids), 0)}"
   backendpool_id            = "${module.ebslb.backendpool_id}"
   #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
 }
 
+###################################################
 # Create Load Balancer
-module "ebslb" {
+module "lb" {
   source              = "./modules/load balancer"
-  resource_group_name    = "${azurerm_resource_group.ebs-rg.name}"
+  resource_group_name    = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
   prefix              = "ebs"
   lb_sku              = "${var.lb_sku}"
