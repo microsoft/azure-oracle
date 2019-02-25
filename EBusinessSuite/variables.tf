@@ -6,13 +6,16 @@ variable "subscription_id" {
     description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
 }
 
-
 variable "vm_hostname" {
   description = "VM Hostname"
   default = "appvm"
 }
 variable "resource_group_name" {
     default = "ebs-rg"
+}
+variable "lb_sku" {
+    default = "Standard"
+
 }
 variable "deployment_location" {
     description = "Azure region"
@@ -60,7 +63,7 @@ variable "data_disk_size_gb" {
     default = 128
 }
 variable "data_sa_type" {
-    default = "Premium_LRS"
+    default = "Standard_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"

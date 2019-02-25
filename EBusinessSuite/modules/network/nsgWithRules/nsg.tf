@@ -60,4 +60,3 @@ module "outbound_rules" {
     base_rule_value = "${local.baseOutbound}"
     basename_prefix = "${var.subnet_id}"
 }
-
