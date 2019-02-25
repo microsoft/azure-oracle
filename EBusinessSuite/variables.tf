@@ -17,7 +17,7 @@ variable "lb_sku" {
     default = "Standard"
 
 }
-variable "deployment_location" {
+variable "location" {
     description = "Azure region"
 }
 variable "tags" {

@@ -91,7 +91,7 @@ locals {
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group_name}"
-  location = "${var.deployment_location}"
+  location = "${var.location}"
 }
 
 ############################################################################################
@@ -100,7 +100,7 @@ module "create_vnet" {
     source = "./modules/network/vnet"
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     vnet_cidr           = "${var.vnet_cidr}"
     vnet_name           = "${var.vnet_name}"
 }
@@ -133,7 +133,7 @@ module "create_networkSGsForBastion" {
 
     nsg_name = "bastion_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     subnet_id = "${module.create_subnets.subnet_names["bastion"]}"
     inboundOverrides  = "${local.bastion_sr_inbound}"
     outboundOverrides = "${local.bastion_sr_outbound}"
@@ -144,7 +144,7 @@ module "create_networkSGsForApplication" {
 
     nsg_name = "application_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     subnet_id = "${module.create_subnets.subnet_names["application"]}"
     inboundOverrides  = "${local.application_sr_inbound}"
     outboundOverrides = "${local.application_sr_outbound}"
@@ -155,7 +155,7 @@ module "create_networkSGsForDatabase" {
 
     nsg_name = "database_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     subnet_id = "${module.create_subnets.subnet_names["database"]}"
     inboundOverrides  = "${local.database_sr_inbound}"
     outboundOverrides = "${local.database_sr_outbound}"

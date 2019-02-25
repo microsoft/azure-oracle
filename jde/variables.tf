@@ -7,7 +7,7 @@ variable "client_secret" {}
 variable "environment" {
     description = "Whether it is dev/test/production"
 }
-variable "deployment_location" {
+variable "location" {
     description = "Location/region of deployment"
 }
 
