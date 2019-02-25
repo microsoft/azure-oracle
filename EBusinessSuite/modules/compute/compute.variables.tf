@@ -18,6 +18,11 @@ variable "compute_hostname_prefix" {
 variable "compute_instance_count" {
   description = "Application instance count"
 }
+
+variable "backendpool_id" {
+  
+}
+
 variable "vm_size" {
 }
 variable "os_publisher" {
@@ -46,8 +51,6 @@ variable "custom_data" {
 }
 variable "compute_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
-}
-variable "nb_instances" {
 }
 variable "enable_accelerated_networking" {
 }
