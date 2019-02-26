@@ -7,7 +7,7 @@ locals {
     subnetPrefixes = {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
     }
 
     #####################
@@ -88,6 +88,7 @@ locals {
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group_name}"
   location = "${var.location}"
+  tags     = "${var.tags}"     
 }
 
 ############################################################################################
@@ -97,6 +98,7 @@ module "create_vnet" {
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
+    tags                = "${var.tags}"    
     vnet_cidr           = "${var.vnet_cidr}"
     vnet_name           = "${var.vnet_name}"
 }
@@ -127,12 +129,13 @@ module "app_subnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "bastion_nsg"
+    nsg_name            = "bastion_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.location}"
-    subnet_id = "${module.create_subnets.subnet_names["bastion"]}"
-    inboundOverrides  = "${local.bastion_sr_inbound}"
-    outboundOverrides = "${local.bastion_sr_outbound}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"    
+    subnet_id           = "${module.create_subnets.subnet_names["bastion"]}"
+    inboundOverrides    = "${local.bastion_sr_inbound}"
+    outboundOverrides   = "${local.bastion_sr_outbound}"
 }
 
 module "create_networkSGsForApplication" {
@@ -141,6 +144,7 @@ module "create_networkSGsForApplication" {
     nsg_name = "application_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
+    tags = "${var.tags}"    
     subnet_id = "${module.create_subnets.subnet_names["application"]}"
     inboundOverrides  = "${local.application_sr_inbound}"
     outboundOverrides = "${local.application_sr_outbound}"
@@ -152,6 +156,7 @@ module "create_networkSGsForDatabase" {
     nsg_name = "database_nsg"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
+    tags = "${var.tags}"
     subnet_id = "${module.create_subnets.subnet_names["database"]}"
     inboundOverrides  = "${local.database_sr_inbound}"
     outboundOverrides = "${local.database_sr_outbound}"
@@ -212,23 +217,22 @@ module "create_app" {
   custom_data               = "${var.custom_data}"
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
-  vnet_subnet_id            = "${element(values(module.app_subnet.subnet_ids), 0)}"
-  backendpool_id            = "${module.ebslb.backendpool_id}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
+  backendpool_id            = "${module.lb.backendpool_id}"
   #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
 }
 
 ###################################################
 # Create Load Balancer
 module "lb" {
-  source              = "./modules/load balancer"
+  source              = "./modules/load_balancer"
   resource_group_name    = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
+  tags                = "${var.tags}"  
   prefix              = "ebs"
   lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${element(values(module.app_subnet.subnet_ids), 0)}"
-  tags                = "${var.tags}"
-
-  "lb_port" {
-    http = ["8080", "Tcp", "8888"]
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  lb_port             = {
+        http = ["8080", "Tcp", "8888"]
   }
 }

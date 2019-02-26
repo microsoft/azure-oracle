@@ -40,7 +40,8 @@ variable "public_ip_address_allocation" {
 }
 
 variable "tags" {
-  type = "map"
+    description = "ARM resource tags to any resource types which accept tags"
+    type = "map"
 }
 
 variable "type" {

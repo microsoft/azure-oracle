@@ -3,7 +3,7 @@ resource "random_id" "vm-sa" {
     vm_hostname = "${var.vm_hostname}"
   }
 
-  byte_length = 6
+  byte_length = 8
 }
 
 resource "azurerm_storage_account" "vm-sa" {
@@ -16,7 +16,7 @@ resource "azurerm_storage_account" "vm-sa" {
 }
 
 resource "azurerm_virtual_machine" "compute" {
-  name                          = "${var.compute_hostname_prefix}${count.index + 1}"
+  name                          = "${var.compute_hostname_prefix}_${format("%.02d",count.index + 1)}"
   count                         = "${var.compute_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -34,7 +34,7 @@ resource "azurerm_virtual_machine" "compute" {
 }
 
   storage_os_disk {
-    name              = "osdisk-${var.vm_hostname}-${count.index}"
+    name              = "${var.compute_hostname_prefix}_${format("%.02d",count.index + 1)}_Disk_OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
     disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
@@ -42,7 +42,7 @@ resource "azurerm_virtual_machine" "compute" {
   }
 
   storage_data_disk {
-    name              = "datadisk-${var.vm_hostname}-${count.index}"
+    name              = "${var.compute_hostname_prefix}_${format("%.02d",count.index + 1)}_Disk_Data_01"    
     create_option     = "Empty"
     lun               = 0
     disk_size_gb      = "${var.data_disk_size_gb}"
@@ -71,11 +71,11 @@ resource "azurerm_virtual_machine" "compute" {
     enabled     = "true"
     storage_uri = "${azurerm_storage_account.vm-sa.primary_blob_endpoint}"
     # storage_uri = "${join(",", azurerm_storage_account.vm-sa.*.primary_blob_endpoint)}"}
-}
+  }
 }
 
 resource "azurerm_availability_set" "compute" {
-  name                         = "${var.vm_hostname}-avset"
+  name                         = "${var.compute_hostname_prefix}-avset"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   platform_fault_domain_count  = 2
@@ -86,7 +86,7 @@ resource "azurerm_availability_set" "compute" {
 
 resource "azurerm_network_interface" "compute" {
   count                         = "${var.compute_instance_count}"
-  name                          = "${var.compute_hostname_prefix}${count.index + 1}"
+  name                          = "${var.compute_hostname_prefix}_${format("%.02d",count.index + 1)}_NIC"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
@@ -95,7 +95,6 @@ resource "azurerm_network_interface" "compute" {
     name                          = "ipconfig${count.index}"
     subnet_id                     = "${var.vnet_subnet_id}"
     private_ip_address_allocation = "Dynamic"
-    load_balancer_backend_address_pools_ids   = ["${var.backendpool_id}"]
   }
 
   tags = "${var.tags}"

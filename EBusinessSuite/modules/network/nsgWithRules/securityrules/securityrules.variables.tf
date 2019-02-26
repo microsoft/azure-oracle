@@ -14,4 +14,6 @@ variable "basename_prefix" {
     type = "string"
 }
 
+# Note: security rules do no allow resource tags.
+
 

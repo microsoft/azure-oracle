@@ -21,6 +21,7 @@ variable "location" {
     description = "Azure region"
 }
 variable "tags" {
+  description = "ARM resource tags to any resource types which accept tags"
   type = "map"
 
   default = {

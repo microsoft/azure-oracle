@@ -11,3 +11,5 @@ variable "nsg_ids" {
 # HouseKeeping...
 variable "resource_group_name" {}
 variable "vnet_name" {}
+
+# Note: subnets don't include resource tags.
