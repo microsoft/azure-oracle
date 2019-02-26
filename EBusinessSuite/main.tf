@@ -8,8 +8,6 @@ locals {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
         bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
-     #   presentation    = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
-     #   gateway         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
     }
 
     #####################
@@ -85,40 +83,40 @@ locals {
   #  needAVSets = [ "presentation", "application" ]
 }
 
-
-
 ############################################################################################
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group_name}"
-  location = "${var.deployment_location}"
+  location = "${var.location}"
+  tags     = "${var.tags}"     
 }
 
 ############################################################################################
-# Create the VNET
+# Create the virtual network
 module "create_vnet" {
     source = "./modules/network/vnet"
 
-    vnet_name           = "${var.vnet_name}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"    
     vnet_cidr           = "${var.vnet_cidr}"
+    vnet_name           = "${var.vnet_name}"
 }
 
 /*
 # Create bastion host subnet
 module "bastion_subnet" {
   source  = "./modules/network/subnets"
-
-  resource_group_name  = "${var.resource_group_name}"
+  
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {bastion = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"}
 }
 # Create Application subnet
 module "app_subnet" {
   source  = "./modules/network/subnets"
-
-  resource_group_name  = "${var.resource_group_name}"
+  
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   vnet_name            = "${module.create_vnet.vnet_name}"
   subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
 }
@@ -131,20 +129,22 @@ module "app_subnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "bastion_nsg"
+    nsg_name            = "${module.create_vnet.vnet_name}-nsg-bastion"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
-    subnet_id = "${module.create_subnets.subnet_names["bastion"]}"
-    inboundOverrides  = "${local.bastion_sr_inbound}"
-    outboundOverrides = "${local.bastion_sr_outbound}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"    
+    subnet_id           = "${module.create_subnets.subnet_names["bastion"]}"
+    inboundOverrides    = "${local.bastion_sr_inbound}"
+    outboundOverrides   = "${local.bastion_sr_outbound}"
 }
 
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "application_nsg"
+    nsg_name = "${module.create_vnet.vnet_name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
+    tags = "${var.tags}"    
     subnet_id = "${module.create_subnets.subnet_names["application"]}"
     inboundOverrides  = "${local.application_sr_inbound}"
     outboundOverrides = "${local.application_sr_outbound}"
@@ -153,12 +153,13 @@ module "create_networkSGsForApplication" {
 module "create_networkSGsForDatabase" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "database_nsg"
+    nsg_name            = "${module.create_vnet.vnet_name}-nsg-database"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.deployment_location}"
-    subnet_id = "${module.create_subnets.subnet_names["database"]}"
-    inboundOverrides  = "${local.database_sr_inbound}"
-    outboundOverrides = "${local.database_sr_outbound}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"
+    subnet_id           = "${module.create_subnets.subnet_names["database"]}"
+    inboundOverrides    = "${local.database_sr_inbound}"
+    outboundOverrides   = "${local.database_sr_outbound}"
 }
 
 ############################################################################################
@@ -176,6 +177,7 @@ module "create_subnets" {
              module.create_networkSGsForApplication.nsg_id))}"
 }
 /* 
+###################################################
 # Create bastion host
 module "create_bastion" {
   source  = "./modules/bastion"
@@ -190,16 +192,15 @@ module "create_bastion" {
   bastion_ssh_public_key  = "${var.bastion_ssh_public_key}"
   }
  */
+###################################################
 # Create Application server
-/*
 module "create_app" {
   source  = "./modules/compute"
 
-  vm_hostname               = "${var.vm_hostname}"
-  resource_group_name       = "${var.resource_group_name}"
+   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix   = "${var.compute_hostname_prefix}"
+  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -214,25 +215,23 @@ module "create_app" {
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
-  nb_instances              = "${var.nb_instances}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
-  vnet_subnet_id            = "${element(module.app_subnet.subnet_ids, 0)}"
-  #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
+  backendpool_id            = "${module.lb.backendpool_id}"
 }
 
-/* # Create Load Balancer
-module "create_lb" {
-  source  = "./modules/loadbalancer"
+###################################################
+# Create Load Balancer
+module "lb" {
+  source = "./modules/load_balancer"
 
-  compartment_ocid              = "${var.compartment_ocid}"
-  AD                            = "${var.AD}"
-  availability_domain           = ["${data.template_file.deployment_ad.*.rendered}"]
-  load_balancer_shape           = "${var.load_balancer_shape}"
-  load_balancer_subnet          = ["${module.lb_subnet.subnetid}"]
-  load_balancer_name            = "${var.ebs_env_prefix}lb${substr(var.region, 3, 3)}"
-  load_balancer_hostname        = "${var.load_balancer_hostname}"
-  load_balancer_listen_port     = "${var.load_balancer_listen_port}"
-  compute_instance_listen_port  = "${var.ebs_app_instance_listen_port}"
-  compute_instance_count        = "${var.ebs_app_instance_count}"
-  be_ip_addresses               = ["${module.create_app.AppsPrvIPs}"]
-} */
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"  
+  prefix              = "${var.compute_hostname_prefix_app}"
+  lb_sku              = "${var.lb_sku}"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  lb_port             = {
+        http = ["8080", "Tcp", "8888"]
+  }
+}

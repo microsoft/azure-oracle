@@ -1,6 +1,4 @@
-variable "vm_hostname" {
-  description = "VM Hostname"
-}
+
 variable "resource_group_name" {
 }
 variable "location" {
@@ -12,12 +10,17 @@ variable "tags" {
     application = "Oracle EBusinessSuite"
   }
 }
-variable "compute_hostname_prefix" {
-  description = "Application hostname prefix"
+variable "compute_hostname_prefix_app" {
+  description = "Prefix for naming of each Application-server specific resource"
 }
 variable "compute_instance_count" {
   description = "Application instance count"
 }
+
+variable "backendpool_id" {
+  
+}
+
 variable "vm_size" {
 }
 variable "os_publisher" {
@@ -46,8 +49,6 @@ variable "custom_data" {
 }
 variable "compute_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
-}
-variable "nb_instances" {
 }
 variable "enable_accelerated_networking" {
 }

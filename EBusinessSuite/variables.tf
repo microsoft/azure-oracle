@@ -6,18 +6,18 @@ variable "subscription_id" {
     description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
 }
 
-
-variable "vm_hostname" {
-  description = "VM Hostname"
-  default = "appvm"
-}
 variable "resource_group_name" {
     default = "ebs-rg"
 }
-variable "deployment_location" {
+variable "lb_sku" {
+    default = "Standard"
+
+}
+variable "location" {
     description = "Azure region"
 }
 variable "tags" {
+  description = "ARM resource tags to any resource types which accept tags"
   type = "map"
 
   default = {
@@ -25,8 +25,8 @@ variable "tags" {
   }
 }
 
-variable "compute_hostname_prefix" {
-  description = "Application hostname prefix"
+variable "compute_hostname_prefix_app" {
+  description = "Application server host resource prefix"
   default = "app"
 }
 variable "compute_instance_count" {
@@ -60,7 +60,7 @@ variable "data_disk_size_gb" {
     default = 128
 }
 variable "data_sa_type" {
-    default = "Premium_LRS"
+    default = "Standard_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"

@@ -6,7 +6,7 @@
 
 resource "azurerm_network_security_rule" "NSGSecurityRule" {
     count = "${length(var.rule_overrides)}"
-    name =  "${join("_",list(var.basename_prefix,lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"direction"),format("%.2d",count.index)))}"
+    name =  "${join("-",list(var.basename_prefix,lower(lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"direction")),format("%.2d",count.index+1)))}"
     #name = "${join("_",list(chomp(var.basename_prefix),"a","b"))}"
     #name = "${var.basename_prefix}"
     priority = "${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"priority") + count.index}"
