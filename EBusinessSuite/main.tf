@@ -129,7 +129,7 @@ module "app_subnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "bastion_nsg"
+    nsg_name            = "${module.create_vnet.vnet_name}-nsg-bastion"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
@@ -141,7 +141,7 @@ module "create_networkSGsForBastion" {
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "application_nsg"
+    nsg_name = "${module.create_vnet.vnet_name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
@@ -153,13 +153,13 @@ module "create_networkSGsForApplication" {
 module "create_networkSGsForDatabase" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "database_nsg"
+    nsg_name            = "${module.create_vnet.vnet_name}-nsg-database"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "${var.location}"
-    tags = "${var.tags}"
-    subnet_id = "${module.create_subnets.subnet_names["database"]}"
-    inboundOverrides  = "${local.database_sr_inbound}"
-    outboundOverrides = "${local.database_sr_outbound}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"
+    subnet_id           = "${module.create_subnets.subnet_names["database"]}"
+    inboundOverrides    = "${local.database_sr_inbound}"
+    outboundOverrides   = "${local.database_sr_outbound}"
 }
 
 ############################################################################################
@@ -197,11 +197,10 @@ module "create_bastion" {
 module "create_app" {
   source  = "./modules/compute"
 
-  vm_hostname               = "${var.vm_hostname}"
-  resource_group_name       = "${azurerm_resource_group.rg.name}"
+   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix   = "${var.compute_hostname_prefix}"
+  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -219,17 +218,17 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   backendpool_id            = "${module.lb.backendpool_id}"
-  #TODO network_security_group_id = "${module.app_nsg.nsg_id}"
 }
 
 ###################################################
 # Create Load Balancer
 module "lb" {
-  source              = "./modules/load_balancer"
-  resource_group_name    = "${azurerm_resource_group.rg.name}"
+  source = "./modules/load_balancer"
+
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
   tags                = "${var.tags}"  
-  prefix              = "ebs"
+  prefix              = "${var.compute_hostname_prefix_app}"
   lb_sku              = "${var.lb_sku}"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
   lb_port             = {

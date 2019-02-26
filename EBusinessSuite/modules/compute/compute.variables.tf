@@ -1,6 +1,4 @@
-variable "vm_hostname" {
-  description = "VM Hostname"
-}
+
 variable "resource_group_name" {
 }
 variable "location" {
@@ -12,8 +10,8 @@ variable "tags" {
     application = "Oracle EBusinessSuite"
   }
 }
-variable "compute_hostname_prefix" {
-  description = "Application hostname prefix"
+variable "compute_hostname_prefix_app" {
+  description = "Prefix for naming of each Application-server specific resource"
 }
 variable "compute_instance_count" {
   description = "Application instance count"

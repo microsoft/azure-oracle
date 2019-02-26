@@ -31,7 +31,7 @@ variable "lb_probe_interval" {
 
 variable "frontend_name" {
   description = "(Required) Specifies the name of the frontend ip configuration."
-  default = "applb"
+  default = "app-lb"
 }
 
 variable "public_ip_address_allocation" {
