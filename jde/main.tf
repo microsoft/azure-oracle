@@ -18,7 +18,7 @@ locals {
 # Create a resource group
 resource "azurerm_resource_group" "jde-rg" {
   name     = "${var.resource_group_name}"
-  location = "${var.deployment_location}"
+  location = "${var.location}"
 }
 
 # Create the VNET
@@ -27,7 +27,7 @@ module "create_vnet" {
 
     vnet_name = "${var.vnet_name}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     vnet_cidr = "${var.vnet_cidr}"
 }
 
@@ -97,7 +97,7 @@ module "bastion_nsg" {
   #  depends_on = ["module.create_bastion_subnet"]
 
     nsg_name = "${local.bastion_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_bastion_subnet.subnet_id}"
 }
@@ -154,7 +154,7 @@ resource "azurerm_network_security_rule" "nsg_rule_inbound_bastion_subnet" {
 # Creating Availability Set for Presentation Tier - JAS
 resource "azurerm_availability_set" "bastion_tier_as" {
     name                = "bastion_tier__as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -164,7 +164,7 @@ module "create_bastion_host" {
 
     instance_count = 1
     public_ip_name = "bastion_public_ip"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "bastion_nic"
     nsg_id = "${module.bastion_nsg.nsg_id}"
@@ -189,7 +189,7 @@ module "create_bastion_host" {
 # Creating Availability Set for Admin Tier
 resource "azurerm_availability_set" "admin_tier_as" {
     name                = "admin_tier_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -197,7 +197,7 @@ resource "azurerm_availability_set" "admin_tier_as" {
 # Creating Availability Set for Presentation Tier - JAS
 resource "azurerm_availability_set" "presentation_tier_jas_as" {
     name                = "presentation_tier_jas_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -205,7 +205,7 @@ resource "azurerm_availability_set" "presentation_tier_jas_as" {
 # Creating Availability Set for Presentation Tier - AIS
 resource "azurerm_availability_set" "presentation_tier_ais_as" {
     name                = "presentation_tier_ais_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -213,7 +213,7 @@ resource "azurerm_availability_set" "presentation_tier_ais_as" {
 # Creating Availability Set for Presentation Tier - Business Services Server
 resource "azurerm_availability_set" "presentation_tier_bss_as" {
     name                = "presentation_tier_bss_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -221,7 +221,7 @@ resource "azurerm_availability_set" "presentation_tier_bss_as" {
 # Creating Availability Set for Presentation Tier - Real-time Events Server
 resource "azurerm_availability_set" "presentation_tier_rtes_as" {
     name                = "presentation_tier_rtes_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -229,7 +229,7 @@ resource "azurerm_availability_set" "presentation_tier_rtes_as" {
 # Creating Availability Set for Presentation Tier - BI Publishing Server
 resource "azurerm_availability_set" "presentation_tier_bips_as" {
     name                = "presentation_tier_bips_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
@@ -237,7 +237,7 @@ resource "azurerm_availability_set" "presentation_tier_bips_as" {
 # Creating Availability Set for Presentation Tier - ADF Server
 resource "azurerm_availability_set" "presentation_tier_adf_as" {
     name                = "presentation_tier_adf_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 } 
@@ -245,7 +245,7 @@ resource "azurerm_availability_set" "presentation_tier_adf_as" {
 # Creating Availability Set for Middle Tier
 resource "azurerm_availability_set" "middle_tier_as" {
     name                = "middle_tier_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 } 
@@ -253,7 +253,7 @@ resource "azurerm_availability_set" "middle_tier_as" {
 # Creating Availability Set for Database Tier
 resource "azurerm_availability_set" "db_tier_as" {
     name                = "db_tier_as"
-    location            = "${var.deployment_location}"
+    location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 } 
@@ -263,7 +263,7 @@ module "admin_nsg" {
     source = "./network/nsg"
 
     nsg_name = "${local.admin_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_admin_tier_subnet.subnet_id}"
 }
@@ -303,7 +303,7 @@ module "presentation_nsg" {
     source = "./network/nsg"
 
     nsg_name = "${local.presentation_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_presentation_tier_subnet.subnet_id}"
 }
@@ -343,7 +343,7 @@ module "middle_tier_nsg" {
     source = "./network/nsg"
 
     nsg_name = "${local.middle_tier_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_middle_tier_subnet.subnet_id}"
 }
@@ -384,7 +384,7 @@ module "gateway_nsg" {
     source = "./network/nsg"
 
     nsg_name = "${local.gateway_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_VPN_GatewaySubnet.subnet_id}"
 } #TODO: Security rules for GatewaySubnet
@@ -394,7 +394,7 @@ module "db_nsg" {
     source = "./network/nsg"
 
     nsg_name = "${local.db_tier_nsg_name}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     subnet_id = "${module.create_db_tier_subnet.subnet_id}"
 }
@@ -434,7 +434,7 @@ module "create_provisioning_server" {
     source = "./vm"
     
     instance_count = "1"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "ps_nic"
     nsg_id = "${module.admin_nsg.nsg_id}"
@@ -459,7 +459,7 @@ module "create_deployment_server" {
     source = "./vm"
     
     instance_count = "1"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "ds_nic"
     nsg_id = "${module.admin_nsg.nsg_id}"
@@ -484,7 +484,7 @@ module "create_deployment_center" {
     source = "./vm"
     
     instance_count = "1"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "dc_nic"
     nsg_id = "${module.admin_nsg.nsg_id}"
@@ -510,7 +510,7 @@ module "create_jas" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "jas_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -535,7 +535,7 @@ module "create_ais" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "ais_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -560,7 +560,7 @@ module "create_bss" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "bss_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -585,7 +585,7 @@ module "create_rtes" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "rtes_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -610,7 +610,7 @@ module "create_bips" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "bips_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -635,7 +635,7 @@ module "create_adf" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "adf_nic"
     nsg_id = "${module.presentation_nsg.nsg_id}"
@@ -662,7 +662,7 @@ module "create_middle_tier" {
     source = "./vm"
     
     instance_count = "${var.number_of_instances}"
-    location = "${var.deployment_location}"
+    location = "${var.location}"
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nic_name = "middle_tier_nic"
     nsg_id = "${module.middle_tier_nsg.nsg_id}"

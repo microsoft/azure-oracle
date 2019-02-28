@@ -8,7 +8,7 @@ export TF_VAR_client_secret="<AAD_Service_Principal_Client_Secret>"
 export TF_VAR_environment = <dev/test/prod/etc>
 
 ### Region
-export TF_VAR_deployment_location="<Azure Region to deploy in>"
+export TF_VAR_location="<Azure Region to deploy in>"
 
 ### Username/Password for Bastion VM
 export TF_VAR_vm_admin_username = <Admin Username for Bastion VM>

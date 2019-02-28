@@ -1,59 +1,7 @@
-/*Copyright © 2018, Oracle and/or its affiliates. All rights reserved.
-
-The Universal Permissive License (UPL), Version 1.0*/
-
-/* 
-resource "oci_core_instance" "compute" {
-  count               = "${var.compute_instance_count}"
-  availability_domain = "${element(var.availability_domain, count.index)}"
-  display_name        = "${var.compute_hostname_prefix}${element(var.AD,count.index)}${count.index + 1}"
-  fault_domain        = "${element(var.fault_domain, count.index)}"
-  compartment_id      = "${var.compartment_ocid}" 
-  shape               = "${var.compute_instance_shape}"
-    
-  create_vnic_details {
-    subnet_id         = "${element(var.compute_subnet, count.index)}"
-    display_name      = "${var.compute_hostname_prefix}${element(var.AD,count.index)}${count.index + 1}"
-    assign_public_ip  = false
-    hostname_label    = "${var.compute_hostname_prefix}${element(var.AD,count.index)}${count.index + 1}"
-  },
-  
-  source_details {
-    source_type             = "image"
-    source_id               = "${var.compute_image}"
-    boot_volume_size_in_gbs = "${var.compute_boot_volume_size_in_gb}"
-  }
-  
-  metadata {
-    ssh_authorized_keys = "${trimspace(file("${var.compute_ssh_public_key}"))}"
-    user_data           = "${base64encode(data.template_file.bootstrap.rendered)}"
-  }  
-  
-  timeouts {
-    create = "${var.timeout}"
-  }
-}
-  */
-
-resource "random_id" "vm-sa" {
-  keepers = {
-    vm_hostname = "${var.vm_hostname}"
-  }
-
-  byte_length = 6
-}
-
-resource "azurerm_storage_account" "vm-sa" {
-  name                     = "bootdiag${lower(random_id.vm-sa.hex)}"
-  resource_group_name      = "${var.resource_group_name}"
-  location                 = "${var.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  tags                     = "${var.tags}"
-}
+#  Provision Application VMs
 
 resource "azurerm_virtual_machine" "compute" {
-  name                          = "${var.compute_hostname_prefix}${count.index + 1}"
+  name                          = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}"
   count                         = "${var.compute_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -71,7 +19,7 @@ resource "azurerm_virtual_machine" "compute" {
 }
 
   storage_os_disk {
-    name              = "osdisk-${var.vm_hostname}-${count.index}"
+    name              = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
     disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
@@ -79,7 +27,7 @@ resource "azurerm_virtual_machine" "compute" {
   }
 
   storage_data_disk {
-    name              = "datadisk-${var.vm_hostname}-${count.index}"
+    name              = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-disk-data-01"    
     create_option     = "Empty"
     lun               = 0
     disk_size_gb      = "${var.data_disk_size_gb}"
@@ -87,7 +35,7 @@ resource "azurerm_virtual_machine" "compute" {
   }
 
   os_profile {
-    computer_name  = "${var.vm_hostname}${count.index}"
+    computer_name  = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -106,11 +54,13 @@ resource "azurerm_virtual_machine" "compute" {
 
   boot_diagnostics {
     enabled     = "true"
-    storage_uri = "${join(",", azurerm_storage_account.vm-sa.*.primary_blob_endpoint)}"
+    storage_uri = "${var.boot_diag_SA_endpoint}"
   }
+
 }
+
 resource "azurerm_availability_set" "compute" {
-  name                         = "${var.vm_hostname}-avset"
+  name                         = "${var.compute_hostname_prefix_app}-avset"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   platform_fault_domain_count  = 2
@@ -120,11 +70,10 @@ resource "azurerm_availability_set" "compute" {
 }
 
 resource "azurerm_network_interface" "compute" {
-  count                         = "${var.nb_instances}"
-  name                          = "${var.compute_hostname_prefix}${count.index + 1}"
+  count                         = "${var.compute_instance_count}"
+  name                          = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-nic"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
-  #TODO network_security_group_id     = "${var.network_security_group_id}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
 
   ip_configuration {
@@ -134,4 +83,11 @@ resource "azurerm_network_interface" "compute" {
   }
 
   tags = "${var.tags}"
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "compute" {
+  count                   = "${var.compute_instance_count}"
+  network_interface_id    = "${element(azurerm_network_interface.compute.*.id, count.index)}"
+  ip_configuration_name   = "ipconfig${count.index}"
+  backend_address_pool_id = "${var.backendpool_id}"
 }

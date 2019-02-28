@@ -15,5 +15,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 # TOC
 
+- jde_az => JD Edwards on Azure (Both App and DB on Azure)
+- jde_az_oci => JD Edwards on Azure and OCI (app on Azure and DB on OCI)
 - jde => JD Edwards on Azure and OCI (app on Azure and DB on OCI)
 - ebs => E-Business Suite on Azure and OCI (app on Azure and DB on OCI)
