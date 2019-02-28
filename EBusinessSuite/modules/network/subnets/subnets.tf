@@ -12,6 +12,14 @@ resource "azurerm_subnet" "subnet" {
 
 #TODO: TF 1.12 -- will allow indexed depends_on, so will be able to do the correct thing of having associate depend on iteration of subnet
 
+# if we can't have the associations depend on the NSG, perhaps indirectly
+resource "null_resource" "nsg_info" {
+  triggers {
+    nsg_names = "${join("*",sort(keys(var.nsg_ids)))}"
+    nsg_ids   = "${join("*",sort(values(var.nsg_ids)))}"
+  }
+}
+
 ###################################################
 ##  Associate the NSG with the Subnet from above.
 ###################################################
@@ -19,5 +27,6 @@ resource "azurerm_subnet_network_security_group_association" "associateSubnetWit
   subnet_id                 = "${element(azurerm_subnet.subnet.*.id,count.index)}"
   network_security_group_id = "${element(values(var.nsg_ids),count.index)}"
   count = "${length(var.subnet_cidr_map)}"
-  depends_on = [ "azurerm_subnet.subnet" ]
+  
+  depends_on = [ "null_resource.nsg_info" ]
 }
