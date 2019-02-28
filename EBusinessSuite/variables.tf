@@ -29,10 +29,19 @@ variable "compute_hostname_prefix_app" {
   description = "Application server host resource prefix"
   default = "app"
 }
+variable "compute_hostname_prefix_bastion" {
+  description = "Application server host resource prefix"
+  default = "bastion"
+}
 variable "compute_instance_count" {
   description = "Application instance count"
   default = 2
 }
+variable "bastion_instance_count" {
+  description = "Bastion instance count"
+  default = 1
+}
+
 variable "vm_size" {
     default = "Standard_D2_V2"
 }
@@ -56,6 +65,11 @@ variable "compute_boot_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
   default = 128
 }
+
+variable "bastion_boot_volume_size_in_gb" {
+  description = "Boot volume size of bastion instance"
+  default = 128
+}
 variable "data_disk_size_gb" {
     default = 128
 }
@@ -70,6 +84,11 @@ variable "admin_password" {
 variable "custom_data" {
 }
 variable "compute_ssh_public_key" {
+  description = "Path to the public key to be used for ssh access to the VM."
+  default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "bastion_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
   default     = "~/.ssh/id_rsa.pub"
 }

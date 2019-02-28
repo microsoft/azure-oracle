@@ -103,25 +103,6 @@ module "create_vnet" {
     vnet_name           = "${var.vnet_name}"
 }
 
-/*
-# Create bastion host subnet
-module "bastion_subnet" {
-  source  = "./modules/network/subnets"
-  
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  vnet_name            = "${module.create_vnet.vnet_name}"
-  subnet_cidr_map      =  {bastion = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"}
-}
-# Create Application subnet
-module "app_subnet" {
-  source  = "./modules/network/subnets"
-  
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  vnet_name            = "${module.create_vnet.vnet_name}"
-  subnet_cidr_map      =  {application = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"}
-}
-*/
-
 ###############################################################
 # Create each of the Network Security Groups
 ###############################################################
@@ -176,28 +157,40 @@ module "create_subnets" {
              module.create_networkSGsForDatabase.nsg_id,
              module.create_networkSGsForApplication.nsg_id))}"
 }
-/* 
+
 ###################################################
 # Create bastion host
+
 module "create_bastion" {
   source  = "./modules/bastion"
 
-  compartment_ocid        = "${var.compartment_ocid}"
-  AD                      = "${var.AD}"
-  availability_domain     = ["${data.template_file.deployment_ad.*.rendered}"]
-  bastion_hostname_prefix = "${var.ebs_env_prefix}bas${substr(var.region, 3, 3)}"
-  bastion_image           = "${data.oci_core_images.InstanceImageOCID.images.0.id}"
-  bastion_instance_shape  = "${var.bastion_instance_shape}"
-  bastion_subnet          = ["${module.bastion_subnet.subnetid}"]
-  bastion_ssh_public_key  = "${var.bastion_ssh_public_key}"
-  }
- */
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix_bastion = "${var.compute_hostname_prefix_bastion}"
+  bastion_instance_count    = "${var.bastion_instance_count}"
+  vm_size                   = "${var.vm_size}"
+  os_publisher              = "${var.os_publisher}"   
+  os_offer                  = "${var.os_offer}"
+  os_sku                    = "${var.os_sku}"
+  os_version                = "${var.os_version}"
+  storage_account_type      = "${var.storage_account_type}"
+  bastion_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
+  admin_username            = "${var.admin_username}"
+  admin_password            = "${var.admin_password}"
+  custom_data               = "${var.custom_data}"
+  bastion_ssh_public_key    = "${var.bastion_ssh_public_key}"
+  enable_accelerated_networking     = "${var.enable_accelerated_networking}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
+}
+
+
 ###################################################
 # Create Application server
 module "create_app" {
   source  = "./modules/compute"
 
-   resource_group_name       = "${azurerm_resource_group.rg.name}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
   compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
