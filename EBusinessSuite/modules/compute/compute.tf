@@ -1,19 +1,4 @@
-resource "random_id" "vm-sa" {
-  keepers = {
-      tmp = "${var.compute_hostname_prefix_app}"
-  }
-
-  byte_length = 8
-}
-
-resource "azurerm_storage_account" "vm-sa" {
-  name                     = "bootdiag${lower(random_id.vm-sa.hex)}"
-  resource_group_name      = "${var.resource_group_name}"
-  location                 = "${var.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  tags                     = "${var.tags}"
-}
+#  Provision Application VMs
 
 resource "azurerm_virtual_machine" "compute" {
   name                          = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}"
@@ -69,9 +54,9 @@ resource "azurerm_virtual_machine" "compute" {
 
   boot_diagnostics {
     enabled     = "true"
-    storage_uri = "${azurerm_storage_account.vm-sa.primary_blob_endpoint}"
-    # storage_uri = "${join(",", azurerm_storage_account.vm-sa.*.primary_blob_endpoint)}"}
+    storage_uri = "${var.boot_diag_SA_endpoint}"
   }
+
 }
 
 resource "azurerm_availability_set" "compute" {
