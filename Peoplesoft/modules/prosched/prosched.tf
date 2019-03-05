@@ -1,11 +1,11 @@
-resource "azurerm_virtual_machine" "compute" {
-  name                          = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.compute_instance_count}"
+resource "azurerm_virtual_machine" "prosched" {
+  name                          = "${var.compute_hostname_prefix_ps}-${format("%.02d",count.index + 1)}"
+  count                         = "${var.prosched_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
-  availability_set_id           = "${azurerm_availability_set.compute.id}"
+  availability_set_id           = "${azurerm_availability_set.prosched.id}"
   vm_size                       = "${var.vm_size}"
-  network_interface_ids         = ["${element(azurerm_network_interface.compute.*.id, count.index)}"]
+  network_interface_ids         = ["${element(azurerm_network_interface.prosched.*.id, count.index)}"]
   delete_os_disk_on_termination = "true"
 
 # Add cloud init
@@ -17,15 +17,15 @@ resource "azurerm_virtual_machine" "compute" {
 }
 
   storage_os_disk {
-    name              = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-disk-OS"
+    name              = "${var.compute_hostname_prefix_ps}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
-    disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
+    disk_size_gb      = "${var.prosched_boot_volume_size_in_gb}"
     managed_disk_type = "${var.storage_account_type}"
   }
 
   storage_data_disk {
-    name              = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-disk-data-01"    
+    name              = "${var.compute_hostname_prefix_ps}-${format("%.02d",count.index + 1)}-disk-data-01"    
     create_option     = "Empty"
     lun               = 0
     disk_size_gb      = "${var.data_disk_size_gb}"
@@ -33,7 +33,7 @@ resource "azurerm_virtual_machine" "compute" {
   }
 
   os_profile {
-    computer_name  = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}"
+    computer_name  = "${var.compute_hostname_prefix_ps}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -44,7 +44,7 @@ resource "azurerm_virtual_machine" "compute" {
 
     ssh_keys {
       path     = "/home/${var.admin_username}/.ssh/authorized_keys"
-      key_data = "${file("${var.compute_ssh_public_key}")}"
+      key_data = "${file("${var.prosched_ssh_public_key}")}"
     }
   }
 
@@ -57,8 +57,8 @@ resource "azurerm_virtual_machine" "compute" {
   }
 }
 
-resource "azurerm_availability_set" "compute" {
-  name                         = "${var.compute_hostname_prefix_app}-avset"
+resource "azurerm_availability_set" "prosched" {
+  name                         = "${var.compute_hostname_prefix_ps}-avset"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   platform_fault_domain_count  = 2
@@ -67,9 +67,9 @@ resource "azurerm_availability_set" "compute" {
   tags                         = "${var.tags}"
 }
 
-resource "azurerm_network_interface" "compute" {
-  count                         = "${var.compute_instance_count}"
-  name                          = "${var.compute_hostname_prefix_app}-${format("%.02d",count.index + 1)}-nic"  
+resource "azurerm_network_interface" "prosched" {
+  count                         = "${var.prosched_instance_count}"
+  name                          = "${var.compute_hostname_prefix_ps}-${format("%.02d",count.index + 1)}-nic"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
@@ -82,10 +82,3 @@ resource "azurerm_network_interface" "compute" {
 
   tags = "${var.tags}"
 }
-
-/* resource "azurerm_network_interface_backend_address_pool_association" "compute" {
-  count                   = "${var.compute_instance_count}"
-  network_interface_id    = "${element(azurerm_network_interface.compute.*.id, count.index)}"
-  ip_configuration_name   = "ipconfig${count.index}"
-  backend_address_pool_id = "${var.backendpool_id}"
-} */

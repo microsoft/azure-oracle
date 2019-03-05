@@ -10,10 +10,10 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
-variable "compute_hostname_prefix_app" {
+variable "compute_hostname_prefix_ps" {
   description = "Prefix for naming of each Application-server specific resource"
 }
-variable "compute_instance_count" {
+variable "prosched_instance_count" {
   description = "Application instance count"
 }
 
@@ -31,7 +31,7 @@ variable "os_version" {
 }
 variable "storage_account_type" {
 }
-variable "compute_boot_volume_size_in_gb" {
+variable "prosched_boot_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
 }
 variable "data_disk_size_gb" {
@@ -44,7 +44,7 @@ variable "admin_password" {
 }
 variable "custom_data" {
 }
-variable "compute_ssh_public_key" {
+variable "prosched_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
 }
 variable "enable_accelerated_networking" {

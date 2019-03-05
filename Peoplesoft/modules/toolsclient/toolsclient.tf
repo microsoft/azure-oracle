@@ -1,10 +1,10 @@
-resource "azurerm_virtual_machine" "bastion" {
-  name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.bastion_instance_count}"
+resource "azurerm_virtual_machine" "toolsclient" {
+  name                          = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}"
+  count                         = "${var.toolsclient_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   vm_size                       = "${var.vm_size}"
-  network_interface_ids         = ["${element(azurerm_network_interface.bastion.*.id, count.index)}"]
+  network_interface_ids         = ["${element(azurerm_network_interface.toolsclient.*.id, count.index)}"]
   delete_os_disk_on_termination = "true"
 
 # Add cloud init
@@ -16,15 +16,15 @@ resource "azurerm_virtual_machine" "bastion" {
 }
 
   storage_os_disk {
-    name              = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}-disk-OS"
+    name              = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
-    disk_size_gb      = "${var.bastion_boot_volume_size_in_gb}"
+    disk_size_gb      = "${var.toolsclient_boot_volume_size_in_gb}"
     managed_disk_type = "${var.storage_account_type}"
   }
 
   os_profile {
-    computer_name  = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}"
+    computer_name  = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -35,7 +35,7 @@ resource "azurerm_virtual_machine" "bastion" {
 
     ssh_keys {
       path     = "/home/${var.admin_username}/.ssh/authorized_keys"
-      key_data = "${file("${var.bastion_ssh_public_key}")}"
+      key_data = "${file("${var.toolsclient_ssh_public_key}")}"
     }
   }
 
@@ -48,9 +48,9 @@ resource "azurerm_virtual_machine" "bastion" {
 }
 
 
-resource "azurerm_network_interface" "bastion" {
-  name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}-nic"  
-  count                         = "${var.bastion_instance_count}"
+resource "azurerm_network_interface" "toolsclient" {
+  name                          = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}-nic"  
+  count                         = "${var.toolsclient_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
@@ -59,16 +59,7 @@ resource "azurerm_network_interface" "bastion" {
     name                          = "ipconfig${count.index}"
     subnet_id                     = "${var.vnet_subnet_id}"
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.bastion.id}"
   }
 
   tags = "${var.tags}"
-}
-resource "azurerm_public_ip" "bastion" {
-  name                         = "${var.prefix}-public-ip"
-  location                     = "${var.location}"
-  resource_group_name          = "${var.resource_group_name}"
-  allocation_method            = "${var.public_ip_address_allocation}"
-  tags                         = "${var.tags}"
-  sku                          = "${var.ip_sku}"
 }

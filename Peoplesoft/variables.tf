@@ -7,7 +7,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "ps-rg2"
+    default = "ps-rg3"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -43,6 +43,17 @@ variable "compute_hostname_prefix_es" {
   description = "Elastic Search server host resource prefix"
   default = "es"
 }
+
+
+variable "compute_hostname_prefix_ps" {
+  description = "Elastic Search server host resource prefix"
+  default = "ps"
+}
+
+variable "compute_hostname_prefix_tc" {
+  description = "Elastic Search server host resource prefix"
+  default = "tc"
+}
 variable "compute_instance_count" {
   description = "Application instance count"
   default = 2
@@ -59,6 +70,15 @@ variable "webserver_instance_count" {
 variable "elastic_instance_count" {
   description = "elastic instance count"
   default = 2
+}
+variable "prosched_instance_count" {
+  description = "elastic instance count"
+  default = 2
+}
+
+variable "toolsclient_instance_count" {
+  description = "elastic instance count"
+  default = 1
 }
 
 variable "vm_size" {
@@ -99,6 +119,14 @@ variable "elastic_boot_volume_size_in_gb" {
   description = "Boot volume size of elastic search instance"
   default = 128
 }
+variable "prosched_boot_volume_size_in_gb" {
+  description = "Boot volume size of elastic search instance"
+  default = 128
+}
+variable "toolsclient_boot_volume_size_in_gb" {
+  description = "Boot volume size of elastic search instance"
+  default = 128
+}
 variable "data_disk_size_gb" {
     default = 128
 }
@@ -131,6 +159,14 @@ variable "elastic_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
   default     = "~/.ssh/id_rsa.pub"
 }
+variable "prosched_ssh_public_key" {
+  description = "Path to the public key to be used for ssh access to the VM."
+  default     = "~/.ssh/id_rsa.pub"
+}
+variable "toolsclient_ssh_public_key" {
+  description = "Path to the public key to be used for ssh access to the VM."
+  default     = "~/.ssh/id_rsa.pub"
+}
 variable "nb_instances" {
     default = 1
 }
@@ -138,7 +174,7 @@ variable "enable_accelerated_networking" {
     default = "false"
 }
 variable "vnet_name" {
-    default = "ebs-vnet"
+    default = "ps-vnet"
 }
 variable "vnet_cidr" {
     default = "10.2.0.0/16"

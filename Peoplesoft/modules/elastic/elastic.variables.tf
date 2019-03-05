@@ -51,6 +51,15 @@ variable "enable_accelerated_networking" {
 variable "vnet_subnet_id" {
 }
 
+
+variable "boot_diag_SA_endpoint" {
+
+  description = "Blob endpoint for storage account to use for VM Boot diagnostics"
+
+  type = "string"
+
+}
+
 #TODO
 /*
 variable "network_security_group_id" {

@@ -40,14 +40,20 @@ locals {
     application_sr_inbound = [
         {
             source_port_ranges =  "*" 
-            source_address_prefix = "AzureLoadBalancer"  # input from the Load Balancer only.             
-            destination_port_ranges = "8000" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"              
+            destination_port_ranges = "22" 
             destination_address_prefix = "*"             
         },
         {
             source_port_ranges =  "*" 
-            source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.               
-            destination_port_ranges = "22" 
+            source_address_prefix = "${local.subnetPrefixes["webserver"]}"              
+            destination_port_ranges = "9033-9039"
+            destination_address_prefix = "*"             
+        },
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["elasticsearch"]}"              
+            destination_port_ranges = "9200"
             destination_address_prefix = "*"             
         }
     ]
@@ -62,7 +68,90 @@ locals {
         #TODO:
         # outbound to file service
     ]
+    webserver_sr_inbound = [
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "AzureLoadBalancer"  # input from the Load Balancer only.             
+            destination_port_ranges = "8000" 
+            destination_address_prefix = "*"             
+        },
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"                
+            destination_port_ranges = "22" 
+            destination_address_prefix = "*"             
+        },
+               {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["elasticsearch"]}"                
+            destination_port_ranges = "*" 
+            destination_address_prefix = "*"             
+        }
+    ]
 
+    webserver_sr_outbound = [
+                {
+            source_port_ranges =  "*" 
+            source_address_prefix = "*"  # ob to Application Servers               
+            destination_port_ranges = "*" 
+            destination_address_prefix = "${local.subnetPrefixes["application"]}"             
+        },
+                   {
+            source_port_ranges =  "*" 
+            source_address_prefix = "*"              
+            destination_port_ranges = "9200" 
+            destination_address_prefix = "${local.subnetPrefixes["elasticsearch"]}"    # ob to Elastic Servers            
+        }
+    ]
+    elasticsearch_sr_inbound = [
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["webserver"]}"             
+            destination_port_ranges = "9200"
+            destination_address_prefix = "*"             
+        },
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"                
+            destination_port_ranges = "22" 
+            destination_address_prefix = "*"             
+        }
+    ]
+
+    elasticsearch_sr_outbound = [
+                {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["application"]}"  # ob to Application Servers               
+            destination_port_ranges = "9033-9039" 
+            destination_address_prefix = "*"             
+        },
+                   {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["webserver"]}"  # ob to WebServers            
+            destination_port_ranges = "8000" 
+            destination_address_prefix = "*"             
+        }
+    ]
+
+        toolsclient_sr_inbound = [
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["application"]}"             
+            destination_port_ranges = "5985-5986"
+            destination_address_prefix = "*"             
+        },
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"                
+            destination_port_ranges = "22" 
+            destination_address_prefix = "*"             
+        }
+    ]
+
+    toolsclient_sr_outbound = [
+
+    ]
+    
     database_sr_inbound = [
         {
             source_port_ranges =  "*" 
@@ -199,6 +288,19 @@ module "create_subnets" {
              module.create_networkSGsForWebserver.nsg_id,
              module.create_networkSGsForApplication.nsg_id))}"
 }
+####################
+# Create Boot Diag Storage Account
+
+module "create_boot_sa" {
+  source  = "./modules/storage"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
+}
+
+
 
 ###################################################
 # Create bastion host
@@ -224,6 +326,7 @@ module "create_bastion" {
   bastion_ssh_public_key    = "${var.bastion_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
 }
 
 
@@ -252,6 +355,7 @@ module "create_app" {
   compute_ssh_public_key    = "${var.compute_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
 }
 
 
@@ -281,6 +385,7 @@ module "create_web" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["webserver"]}"
   backendpool_id            = "${module.lb.backendpool_id}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
 }
 
 ###################################################
@@ -308,7 +413,63 @@ module "create_es" {
   elastic_ssh_public_key    = "${var.elastic_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["elasticsearch"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
 }
+
+###################################################
+# Create Process Scheduler server
+module "create_ps" {
+  source  = "./modules/prosched"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix_ps = "${var.compute_hostname_prefix_ps}"
+  prosched_instance_count    = "${var.prosched_instance_count}"
+  vm_size                   = "${var.vm_size}"
+  os_publisher              = "${var.os_publisher}"   
+  os_offer                  = "${var.os_offer}"
+  os_sku                    = "${var.os_sku}"
+  os_version                = "${var.os_version}"
+  storage_account_type      = "${var.storage_account_type}"
+  prosched_boot_volume_size_in_gb    = "${var.prosched_boot_volume_size_in_gb}"
+  data_disk_size_gb         = "${var.data_disk_size_gb}"
+  data_sa_type              = "${var.data_sa_type}"
+  admin_username            = "${var.admin_username}"
+  admin_password            = "${var.admin_password}"
+  custom_data               = "${var.custom_data}"
+  prosched_ssh_public_key    = "${var.prosched_ssh_public_key}"
+  enable_accelerated_networking     = "${var.enable_accelerated_networking}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+}
+###################################################
+# Create Tools Client machine
+
+module "create_toolsclient" {
+  source  = "./modules/toolsclient"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix_tc = "${var.compute_hostname_prefix_tc}"
+  toolsclient_instance_count    = "${var.toolsclient_instance_count}"
+  vm_size                   = "${var.vm_size}"
+  os_publisher              = "${var.os_publisher}"   
+  os_offer                  = "${var.os_offer}"
+  os_sku                    = "${var.os_sku}"
+  os_version                = "${var.os_version}"
+  storage_account_type      = "${var.storage_account_type}"
+  toolsclient_boot_volume_size_in_gb    = "${var.toolsclient_boot_volume_size_in_gb}"
+  admin_username            = "${var.admin_username}"
+  admin_password            = "${var.admin_password}"
+  custom_data               = "${var.custom_data}"
+  toolsclient_ssh_public_key    = "${var.toolsclient_ssh_public_key}"
+  enable_accelerated_networking     = "${var.enable_accelerated_networking}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["client"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+}
+
 
 ###################################################
 # Create Load Balancer
@@ -322,6 +483,6 @@ module "lb" {
   lb_sku              = "${var.lb_sku}"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["webserver"]}"
   lb_port             = {
-        http = ["8080", "Tcp", "8888"]
+        http = ["8000", "Tcp", "8000"]
   }
 }
