@@ -7,7 +7,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "ps-rg3"
+    default = "ps-rg"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -179,6 +179,7 @@ variable "vnet_name" {
 variable "vnet_cidr" {
     default = "10.2.0.0/16"
 }
+
 
 
 

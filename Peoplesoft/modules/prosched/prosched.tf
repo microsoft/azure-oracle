@@ -73,12 +73,23 @@ resource "azurerm_network_interface" "prosched" {
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"
+  
+
 
   ip_configuration {
     name                          = "ipconfig${count.index}"
     subnet_id                     = "${var.vnet_subnet_id}"
     private_ip_address_allocation = "Dynamic"
+    #application_security_group_ids = [ "${azurerm_application_security_group.prosched.id}"]
   }
 
   tags = "${var.tags}"
+}
+
+resource "azurerm_network_interface_application_security_group_association" "prosched" {
+  #network_interface_id          = "${azurerm_network_interface.prosched.id}"
+  count                         = "${var.prosched_instance_count}"
+  network_interface_id          = "${element(azurerm_network_interface.prosched.*.id, count.index)}"
+  ip_configuration_name         = "ipconfig${count.index}"
+  application_security_group_id = "${var.asg_id_ps}"
 }

@@ -10,6 +10,11 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
+
+variable "asg_id_ps" {
+  type = "string"
+}
+
 variable "compute_hostname_prefix_ps" {
   description = "Prefix for naming of each Application-server specific resource"
 }
@@ -51,8 +56,6 @@ variable "enable_accelerated_networking" {
 }
 variable "vnet_subnet_id" {
 }
-
-
 variable "boot_diag_SA_endpoint" {
 
   description = "Blob endpoint for storage account to use for VM Boot diagnostics"
