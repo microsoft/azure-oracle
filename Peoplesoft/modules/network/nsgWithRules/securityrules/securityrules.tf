@@ -33,7 +33,8 @@ resource "azurerm_network_security_rule" "NSGSecurityRule" {
     destination_address_prefix = "${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"destination_address_prefix")}"
 
     network_security_group_name = "${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"network_security_group_name")}"
-    resource_group_name = "${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"resource_group_name")}" 
+    resource_group_name = "${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"resource_group_name")}"
+    destination_application_security_group_ids = ["${lookup(merge(var.base_rule_value,var.rule_overrides[count.index]),"asg_name")}"]
 
 /*
 
