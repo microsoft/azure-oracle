@@ -41,6 +41,12 @@ locals {
             destination_port_ranges = "8000" 
             destination_address_prefix = "*"             
         },
+        {   #TODO: Likely only one of 8000 or 8888 needed..
+            source_port_ranges =  "*" 
+            source_address_prefix = "AzureLoadBalancer"  # input from the Load Balancer only.             
+            destination_port_ranges = "8888" 
+            destination_address_prefix = "*"             
+        },
         {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.               
@@ -158,6 +164,22 @@ module "create_subnets" {
              module.create_networkSGsForApplication.nsg_id))}"
 }
 
+
+
+
+###################################################
+# Create a Storage account ofr Boot diagnostics 
+# information for all VMs.
+
+module "create_boot_sa" {
+  source  = "./modules/storage"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
+}
+
 ###################################################
 # Create bastion host
 
@@ -182,8 +204,8 @@ module "create_bastion" {
   bastion_ssh_public_key    = "${var.bastion_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
 }
-
 
 ###################################################
 # Create Application server
@@ -211,6 +233,7 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   backendpool_id            = "${module.lb.backendpool_id}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"  
 }
 
 ###################################################
