@@ -11,15 +11,23 @@ locals {
     }
 
     #####################
-    ## NSGs
+    ## ASG Names
+    asgNames = {
+        prosched = "asg-prosched"
+        compute = "asg-compute"
+    }
 
+    #####################
+    ## NSG/ASG Rules
     bastion_sr_inbound = [
         {   # SSH from outside
+            flavor = "SP-DP"
             source_port_ranges = "*" 
 #TODO: Note that only one of prefix or prefixes is allowed and keywords can't be in the list.
             source_address_prefix = "Internet"
             destination_port_ranges =  "22" 
         },{ # SSH from within any of the servers
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "VirtualNetwork"
             destination_port_ranges =  "22" 
@@ -28,35 +36,48 @@ locals {
 
     bastion_sr_outbound = [
         {  # SSH to any of the servers
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "VirtualNetwork"
             destination_port_ranges =  "22" 
         }    
     ]
-
     application_sr_inbound = [
         {
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "AzureLoadBalancer"  # input from the Load Balancer only.             
             destination_port_ranges = "8000" 
             destination_address_prefix = "*"             
         },
         {   #TODO: Likely only one of 8000 or 8888 needed..
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "AzureLoadBalancer"  # input from the Load Balancer only.             
             destination_port_ranges = "8888" 
             destination_address_prefix = "*"             
         },
         {
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.               
             destination_port_ranges = "22" 
             destination_address_prefix = "*"             
+        },
+        {   # Special Test
+            flavor = "SA-DP"
+            source_port_ranges =  "*" 
+            # source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.               
+            source_application_security_group_id = "${module.create_asg.asg_id_ps}"
+#            source_application_security_group_id = "${local.asgNames["prosched"]}" # ${module.create_asg.asg_id_ps}"
+            destination_port_ranges = "22" 
+            destination_address_prefix = "*"  
         }
     ]
 
     application_sr_outbound = [
         {
+            flavor = "SA-DA"
             source_port_ranges =  "*" 
             source_address_prefix = "*" 
             destination_port_ranges =  "1521"            
@@ -68,12 +89,14 @@ locals {
 
     database_sr_inbound = [
         {
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["application"]}"                 
             destination_port_ranges =  "1521" 
             destination_address_prefix = "*"             
         },
         {
+            flavor = "SP-DP"
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.            
             destination_port_ranges =  "22" 
@@ -81,6 +104,13 @@ locals {
         }
     ]
     database_sr_outbound = [
+                {
+            flavor = "SP-DP"                    
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.            
+            destination_port_ranges =  "22" 
+            destination_address_prefix = "*"                
+        }
     ]
 
     ##########################################
@@ -107,6 +137,14 @@ module "create_vnet" {
     tags                = "${var.tags}"    
     vnet_cidr           = "${var.vnet_cidr}"
     vnet_name           = "${var.vnet_name}"
+}
+
+# Create Application Security Groups
+module "create_asg" {
+  source  = "./modules/network/asg"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
 }
 
 ###############################################################

@@ -7,9 +7,20 @@ variable "base_rule_value" {
 variable "rule_overrides" {
     description = "List of rule value objects -- used to overlay base_rule_value for final SecurityRule operands"
     type = "list"
+    default = [ { "NotARealDefault" = "NotARealDefault" } ]
 }
 
 variable "rule_overrides_count" {
+}
+
+variable "r_s" {
+    type = "map"
+}
+variable rule_type {
+    default = 0
+}
+variable rule_type0 {
+
 }
 
 variable "basename_prefix" {
