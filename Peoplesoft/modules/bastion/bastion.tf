@@ -1,21 +1,3 @@
-
-#resource "random_id" "vm-sa" {
-#  keepers = {
-#      tmp = "${var.compute_hostname_prefix_bastion}"
-#  }
-#
-#  byte_length = 8
-#}
-#resource "azurerm_storage_account" "vm-sa" {
-#  name                     = "bootdiag${lower(random_id.vm-sa.hex)}"
-#  resource_group_name      = "${var.resource_group_name}"
-#  location                 = "${var.location}"
-#  account_tier             = "Standard"
-#  account_replication_type = "LRS"
-#  tags                     = "${var.tags}"
-#}
-
-
 resource "azurerm_virtual_machine" "bastion" {
   name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}"
   count                         = "${var.bastion_instance_count}"
@@ -62,8 +44,9 @@ resource "azurerm_virtual_machine" "bastion" {
   boot_diagnostics {
     enabled     = "true"
     storage_uri = "${var.boot_diag_SA_endpoint}"
-  }
+      }
 }
+
 
 resource "azurerm_network_interface" "bastion" {
   name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}-nic"  

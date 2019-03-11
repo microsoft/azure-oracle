@@ -165,6 +165,8 @@ module "create_subnets" {
 }
 
 
+
+
 ###################################################
 # Create a Storage account ofr Boot diagnostics 
 # information for all VMs.
