@@ -82,10 +82,3 @@ resource "azurerm_network_interface" "compute" {
 
   tags = "${var.tags}"
 }
-
-resource "azurerm_network_interface_application_security_group_association" "compute" {
-  count                         = "${var.compute_instance_count}"
-  network_interface_id          = "${element(azurerm_network_interface.compute.*.id, count.index)}"
-  ip_configuration_name         = "ipconfig${count.index}"
-  application_security_group_id = "${var.asg_id_app}"
-}

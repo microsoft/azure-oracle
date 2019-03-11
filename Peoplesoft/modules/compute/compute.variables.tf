@@ -10,10 +10,6 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
-variable "asg_id_app" {
-  type = "string"
-}
-
 variable "compute_hostname_prefix_app" {
   description = "Prefix for naming of each Application-server specific resource"
 }
