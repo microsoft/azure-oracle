@@ -57,8 +57,12 @@ variable "public_ip_address_allocation" {
   description = "(Required) Defines how an IP address is assigned. Options are Static or Dynamic."
   default = "Static"
 }
-variable "boot_diag_SA_endpoint" {
-  description = "Blob endpoint for storage account to use for VM Boot diagnostics"
-  type = "string"
-}
 
+
+variable "boot_diag_SA_endpoint" {
+
+  description = "Blob endpoint for storage account to use for VM Boot diagnostics"
+
+  type = "string"
+
+}
