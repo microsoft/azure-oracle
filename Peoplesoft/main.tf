@@ -48,14 +48,14 @@ locals {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["webserver"]}"              
             destination_port_ranges = "9033-9039"
-            destination_address_prefix = "*"      # Needs to accept ASGs as destination       
+            destination_address_prefix = "*"           
         },
         
         {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["elasticsearch"]}"              
             destination_port_ranges = "2320-2321"
-            destination_address_prefix = "*"        # Needs to accept ASGs as destination        
+            destination_address_prefix = "*"              
         }
     ]
 
@@ -291,18 +291,6 @@ module "create_subnets" {
 }
 
 ####################
-# Create Application Security Groups
-
-module "create_asg" {
-  source  = "./modules/network/asg"
-
-  resource_group_name       = "${azurerm_resource_group.rg.name}"
-  location                  = "${var.location}"
-  tags                      = "${var.tags}"
-}
-
-
-####################
 # Create Boot Diag Storage Account
 
 module "create_boot_sa" {
@@ -370,7 +358,7 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  asg_id_app                = "${module.create_asg.asg_id_app}"
+
  
 }
 
@@ -458,7 +446,7 @@ module "create_ps" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  asg_id_ps                 = "${module.create_asg.asg_id_ps}"
+
  
 }
 ###################################################

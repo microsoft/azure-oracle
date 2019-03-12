@@ -11,10 +11,6 @@ variable "tags" {
   }
 }
 
-variable "asg_id_ps" {
-  type = "string"
-}
-
 variable "compute_hostname_prefix_ps" {
   description = "Prefix for naming of each Application-server specific resource"
 }
