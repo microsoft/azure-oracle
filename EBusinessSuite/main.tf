@@ -8,6 +8,8 @@ locals {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
         bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
+        # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
+        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 9)}"
     }
 
     #####################
@@ -149,6 +151,23 @@ module "create_networkSGsForDatabase" {
     outboundOverrides   = "${local.database_sr_outbound}"
 }
 
+locals {
+    # map of subnets which are to have NSGs attached.
+    nsg_ids = {  
+        # Note: if you change the number of subnets in this map, be sure to
+        #       also adjust nsg_ids_len value (below) as well to the new number
+        #       of entries.   The value of nsg_ids_len should be calculated 
+        #       dynamically (e.g., "${length(local.nsg_ids)}"), but terraform then 
+        #       refuses to allow it to be used as a count later.  Thus it is
+        #       "hard-coded" below.   TF 0.12 can work around this, but not 0.11.
+        bastion     = "${module.create_networkSGsForBastion.nsg_id}"
+        database    = "${module.create_networkSGsForDatabase.nsg_id}"
+        application = "${module.create_networkSGsForApplication.nsg_id}"
+    }
+    # Number of entries in nsg_ids. Can't be calculated. See note above.
+    nsg_ids_len = 3
+}
+
 ############################################################################################
 # Create each of the subnets
 module "create_subnets" {
@@ -157,13 +176,9 @@ module "create_subnets" {
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     vnet_name = "${module.create_vnet.vnet_name}"
-    nsg_ids = "${zipmap(
-        list("bastion", "database", "application"),
-        list(module.create_networkSGsForBastion.nsg_id,
-             module.create_networkSGsForDatabase.nsg_id,
-             module.create_networkSGsForApplication.nsg_id))}"
+    nsg_ids = "${local.nsg_ids}"
+    nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 }
-
 
 ###################################################
 # Create a Storage account ofr Boot diagnostics 
