@@ -1,6 +1,6 @@
 # To do, before public preview,
 #     change the service provider name
-#     change the 
+#     change the SKU to local or its equivalent (check w/ Karthik)
 # Create the ExpressRoute circuit to OCI under a resource group
 resource "azurerm_express_route_circuit" "Az2OCI" {
   name                  = "${var.resource_group_name}-Az2OCI-ER"

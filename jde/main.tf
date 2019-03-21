@@ -1,11 +1,11 @@
 # Defining IP Address Range for the subnets # TODO: Verify this and VNET CIDR wih Karthik
 locals {
-    bastion_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 0)}"
-    admin_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 1)}"
-    presentation_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 2)}"
-    middle_tier_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 3)}"
-    db_tier_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 4)}"
-    gateway_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 6, 5)}"    #For VNET Gateway for VPN
+    bastion_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 0)}"
+    admin_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 1)}"
+    presentation_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 2)}"
+    middle_tier_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 3)}"
+    db_tier_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 4)}"
+    gateway_subnet_prefix = "${cidrsubnet(var.vnet_cidr, 3, 5)}"    #For VNET Gateway for VPN
     bastion_nsg_name = "bastion_subnet_nsg"
     admin_nsg_name = "admin_subnet_nsg"
     presentation_nsg_name = "presentation_subnet_nsg"
@@ -90,6 +90,57 @@ module "create_VPN_GatewaySubnet" {
     vnet_name = "${module.create_vnet.vnet_name}"
     subnet_cidr = "${local.gateway_subnet_prefix}"
 }
+
+module "create_ExR_ckt_to_OCI" {
+    source = "./network/expressroute"
+
+    resource_group_name = "${azurerm_resource_group.jde-rg.name}"
+    location = "${var.deployment_location}"
+    peering-location = "${var.ExR_peering_location}"
+    bandwidth-in-mbps = "${var.ExR_bandwidth_in_mbps}"
+}
+
+module "create_virtual_network_ExR_gw" {
+    source = "./network/gateway"
+
+    vnet_name = "${module.create_vnet.vnet_name}"
+    location = "${var.deployment_location}"
+    resource_group_name = "${azurerm_resource_group.jde-rg.name}"
+    gateway-subnet-id = "${module.create_VPN_GatewaySubnet.subnet_id}"
+}
+
+# Delete this segment after confirming with Ram and before announcement
+# *************************************
+# These segment is a hack
+# Create a temp VNET
+
+module "create_temp_vnet" {
+    source = "./network/vnet"
+
+    vnet_name = "Temp-VNet"
+    resource_group_name = "${azurerm_resource_group.jde-rg.name}"
+    location = "${var.deployment_location}"
+    vnet_cidr = "172.16.255.128/25"
+}
+
+resource "azurerm_virtual_network_peering" "test1" {
+  name                      = "peer1to2"
+  resource_group_name       = "${azurerm_resource_group.jde-rg.name}"
+  virtual_network_name      = "${module.create_vnet.vnet_name}"
+  remote_virtual_network_id = "${module.create_temp_vnet.vnet_id}"
+}
+
+resource "azurerm_virtual_network_peering" "test2" {
+  name                      = "peer2to1"
+  resource_group_name       = "${azurerm_resource_group.jde-rg.name}"
+  virtual_network_name      = "${module.create_temp_vnet.vnet_name}"
+  remote_virtual_network_id = "${module.create_vnet.vnet_id}"
+}
+
+
+# *************************************
+# End of Delete section
+
 
 # Create NSG for Bastion Subnet
 module "bastion_nsg" {
@@ -184,7 +235,7 @@ module "create_bastion_host" {
     assign_public_ip = true
    # depends_on = ["module.bastion_nsg"]
 }
-
+/* #BoCommented Section for Ram Testing
 
 # Creating Availability Set for Admin Tier
 resource "azurerm_availability_set" "admin_tier_as" {
@@ -682,7 +733,7 @@ module "create_middle_tier" {
 
     assign_public_ip = false
 }
-
+*/ #EoCommented Section for Ram Testing
 # Create DB Tier
 /*
 module "create_db_tier" {

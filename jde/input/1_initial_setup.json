@@ -1,6 +1,6 @@
 {
     
-    "vnet_cidr": "192.168.0.0/16",
+    "vnet_cidr": "192.168.32.0/22",
     "vnet_name": "jde_az_vnet",
     "vm_sku": "Standard_DS1_v2",
     "number_of_instances": "2",
@@ -11,5 +11,7 @@
     "db_publisher": "Oracle",
     "db_offer": "Oracle-Database-Ee",
     "db_sku": "7.6",
-    "db_version": "latest"
+    "db_version": "latest",
+    "ExR_peering_location": "Washington DC",
+    "ExR_bandwidth_in_mbps": "50"
 }

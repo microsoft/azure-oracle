@@ -35,3 +35,9 @@ variable db_publisher {}
 variable db_offer {}
 variable db_sku {}
 variable db_version {}
+variable "ExR_peering_location" {
+    description = "example: Washington DC"
+}
+variable "ExR_bandwidth_in_mbps" {
+    description = "ExpressRoute bandwidth in Mbps. E.x.50 Mbps is 50; 1 Gbps is 1000; 10 Gbps is 10000"
+}
