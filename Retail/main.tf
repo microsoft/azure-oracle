@@ -207,14 +207,14 @@ module "create_ftp" {
 
 
 ###################################################
-# Create MerchAppA server
-module "create_appA" {
+# Create Merch server
+module "create_app" {
   source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_appA}"
+  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -232,21 +232,50 @@ module "create_appA" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb.backendpool_id}"
+  backendpool_id            = "${module.lb_App.backendpool_id}"
+
+ 
+}
+###################################################
+# Create IDM server
+module "create_idm" {
+  source  = "./modules/compute"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix_app = "${var.compute_hostname_prefix_idm}"
+  compute_instance_count    = "${var.compute_instance_count}"
+  vm_size                   = "${var.vm_size}"
+  os_publisher              = "${var.os_publisher}"   
+  os_offer                  = "${var.os_offer}"
+  os_sku                    = "${var.os_sku}"
+  os_version                = "${var.os_version}"
+  storage_account_type      = "${var.storage_account_type}"
+  compute_boot_volume_size_in_gb    = "${var.compute_boot_volume_size_in_gb}"
+  data_disk_size_gb         = "${var.data_disk_size_gb}"
+  data_sa_type              = "${var.data_sa_type}"
+  admin_username            = "${var.admin_username}"
+  admin_password            = "${var.admin_password}"
+  custom_data               = "${var.custom_data}"
+  compute_ssh_public_key    = "${var.compute_ssh_public_key}"
+  enable_accelerated_networking     = "${var.enable_accelerated_networking}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  backendpool_id            = "${module.lb_idm.backendpool_id}"
 
  
 }
 
-
 ###################################################
-# Create MerchAppB server
-module "create_appB" {
+# Create Integration server
+module "create_integ" {
   source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_appB}"
+  compute_hostname_prefix_app = "${var.compute_hostname_prefix_integ}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -264,7 +293,7 @@ module "create_appB" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb.appB_backendpool_id}"
+  backendpool_id            = "${module.lb_Integ.backendpool_id}"
 
  
 }
@@ -296,24 +325,74 @@ module "create_RIA" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb.ria_backendpool_id}"
+  backendpool_id            = "${module.lb_RIA.backendpool_id}"
 
  
 }
 
 ###################################################
-# Create Load Balancer
-module "lb" {
-  source = "./modules/load_balancer"
+# Create Internal Load Balancers
+module "lb_App" {
+  source = "./modules/load_balancer_internal"
 
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
   tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_web}"
+  prefix              = "${var.compute_hostname_prefix_app}"
   lb_sku              = "${var.lb_sku}"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
   lb_port             = {
-        http = ["8000", "Tcp", "8000"]
+        http = ["80", "Tcp", "80"]
         https = ["443", "Tcp", "443"]
   }
 }
+
+module "lb_Integ" {
+  source = "./modules/load_balancer_internal"
+
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"  
+  prefix              = "${var.compute_hostname_prefix_integ}"
+  lb_sku              = "${var.lb_sku}"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  lb_port             = {
+        http = ["80", "Tcp", "80"]
+        https = ["443", "Tcp", "443"]
+  }
+}
+
+module "lb_idm" {
+  source = "./modules/load_balancer_internal"
+
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"  
+  prefix              = "${var.compute_hostname_prefix_idm}"
+  lb_sku              = "${var.lb_sku}"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  lb_port             = {
+        http = ["80", "Tcp", "80"]
+        https = ["443", "Tcp", "443"]
+        ldap = ["389", "tcp", "389"]
+        custom = ["5575", "tcp", "5575"]
+  }
+}
+
+module "lb_RIA" {
+  source = "./modules/load_balancer_internal"
+
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"  
+  prefix              = "${var.compute_hostname_prefix_RIA}"
+  lb_sku              = "${var.lb_sku}"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  lb_port             = {
+        http = ["80", "Tcp", "80"]
+        https = ["443", "Tcp", "443"]
+  }
+}
+
+############################################################
+# Create Application Gateway

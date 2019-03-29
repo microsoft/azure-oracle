@@ -7,7 +7,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "jkc-retail-rg"
+    default = "jkc-retail-rg2"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -36,26 +36,26 @@ variable "compute_hostname_prefix_bastion" {
 
 variable "compute_hostname_prefix_ftp" {
   description = "SFTP server host resource prefix"
-  default = "ftp"
+  default = "sftp"
 }
 
-variable "compute_hostname_prefix_appA" {
+variable "compute_hostname_prefix_app" {
   description = "AppA server host resource prefix"
-  default = "appA"
+  default = "app"
 }
-variable "compute_hostname_prefix_appB" {
+variable "compute_hostname_prefix_idm" {
   description = "AppB server host resource prefix"
-  default = "appB"
+  default = "idm"
+}
+variable "compute_hostname_prefix_integ" {
+  description = "AppB server host resource prefix"
+  default = "integ"
 }
 variable "compute_hostname_prefix_RIA" {
   description = "RIA server host resource prefix"
   default = "RIA"
 }
 
-variable "compute_hostname_prefix_app" {
-  description = "Application server host resource prefix"
-  default = "app"
-}
 
 variable "compute_instance_count" {
   description = "Application instance count"
