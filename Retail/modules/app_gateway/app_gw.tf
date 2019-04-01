@@ -1,15 +1,15 @@
 
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  backend_address_pool_name      = "${var.vnet_name}-beap"
+  frontend_port_name             = "${var.vnet_name}-feport"
+  frontend_ip_configuration_name = "${var.vnet_name}-feip"
+  http_setting_name              = "${var.vnet_name}-be-htst"
+  listener_name                  = "${var.vnet_name}-httplstn"
+  request_routing_rule_name      = "${var.vnet_name}-rqrt"
 }
 
 resource "azurerm_public_ip" "app_gw" {
-  name                = "app_gw-pip"
+  name                = "retail_agw-pip"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   allocation_method   = "Dynamic"
@@ -28,7 +28,7 @@ resource "azurerm_application_gateway" "app_gw" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.frontend.id}"
+    subnet_id = "${var.frontend_subnet_id}"
   }
 
   frontend_port {
@@ -38,7 +38,7 @@ resource "azurerm_application_gateway" "app_gw" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.app_gw.id}"
   }
 
   backend_address_pool {

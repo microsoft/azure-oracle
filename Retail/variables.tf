@@ -140,6 +140,9 @@ variable "vnet_cidr" {
     default = "10.2.0.0/16"
 }
 
+variable "frontend_name" {
+  default = "app-lb"
+}
 
 
 

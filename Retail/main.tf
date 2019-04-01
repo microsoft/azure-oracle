@@ -232,7 +232,7 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb_App.backendpool_id}"
+  backendpool_id            = "${module.create_BackendPools_app.backendpool_id}"
 
  
 }
@@ -262,7 +262,7 @@ module "create_idm" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb_idm.backendpool_id}"
+  backendpool_id            = "${module.create_BackendPools_idm.backendpool_id}"
 
  
 }
@@ -293,7 +293,7 @@ module "create_integ" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb_Integ.backendpool_id}"
+  backendpool_id            = "${module.create_BackendPools_integ.backendpool_id}"
 
  
 }
@@ -325,7 +325,7 @@ module "create_RIA" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  backendpool_id            = "${module.lb_RIA.backendpool_id}"
+  backendpool_id            = "${module.create_BackendPools_ria.backendpool_id}"
 
  
 }
@@ -341,58 +341,85 @@ module "lb_App" {
   prefix              = "${var.compute_hostname_prefix_app}"
   lb_sku              = "${var.lb_sku}"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-  lb_port             = {
+}
+
+
+############################################################
+# Create Backend Pools with Rules
+
+module "create_BackendPools_app" {
+  source = "./modules/load_balancer_internal/poolsWithrules"
+
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"  
+    frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    frontend_name_app   = "${var.frontend_name}-app"
+    backendpool_name    = "BEpool_app"
+    lb_port             = {
         http = ["80", "Tcp", "80"]
-        https = ["443", "Tcp", "443"]
+   }
+}
+
+module "create_BackendPools_ria" {
+  source = "./modules/load_balancer_internal/poolsWithrules"
+
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.location}"
+    tags                = "${var.tags}" 
+    frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
+    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    frontend_name_app   = "${var.frontend_name}-ria"
+    backendpool_name    = "BEpool_ria"
+    lb_port             = {
+        http = ["80", "Tcp", "80"]
   }
 }
 
-module "lb_Integ" {
-  source = "./modules/load_balancer_internal"
+module "create_BackendPools_idm" {
+  source = "./modules/load_balancer_internal/poolsWithrules"
 
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${var.location}"
-  tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_integ}"
-  lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-  lb_port             = {
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.location}"
+    tags                = "${var.tags}" 
+    frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
+    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    frontend_name_app   = "${var.frontend_name}-idm"
+    backendpool_name    = "BEpool_idm"
+    lb_port             = {
         http = ["80", "Tcp", "80"]
-        https = ["443", "Tcp", "443"]
-  }
-}
-
-module "lb_idm" {
-  source = "./modules/load_balancer_internal"
-
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${var.location}"
-  tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_idm}"
-  lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-  lb_port             = {
-        http = ["80", "Tcp", "80"]
-        https = ["443", "Tcp", "443"]
+        custom = ["5575", "Tcp", "5575"]
         ldap = ["389", "tcp", "389"]
-        custom = ["5575", "tcp", "5575"]
   }
 }
 
-module "lb_RIA" {
-  source = "./modules/load_balancer_internal"
+module "create_BackendPools_integ" {
+  source = "./modules/load_balancer_internal/poolsWithrules"
 
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${var.location}"
-  tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_RIA}"
-  lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-  lb_port             = {
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.location}"
+    tags                = "${var.tags}" 
+    frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
+    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    frontend_name_app   = "${var.frontend_name}-integ"
+    backendpool_name    = "BEpool_integ"
+    lb_port             = {
         http = ["80", "Tcp", "80"]
-        https = ["443", "Tcp", "443"]
   }
 }
 
 ############################################################
 # Create Application Gateway
+
+module "create_app_gateway" {
+  source = "./modules/app_gateway"
+
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  prefix              = "appgw"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  vnet_name           = "${module.create_vnet.vnet_name}"
+
+ 
+}

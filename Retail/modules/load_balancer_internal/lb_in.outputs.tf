@@ -1,4 +1,5 @@
-output "backendpool_id" {
-    description = "Backend pool"
-    value = "${azurerm_lb_backend_address_pool.inlb.id}"
+output "loadbalancer_id" {
+    description = "LB id"
+    value = "${azurerm_lb.inlb.id}" 
+    
 }

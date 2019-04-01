@@ -53,3 +53,15 @@ variable "type" {
 variable "frontend_subnet_id" {
   description = "(Optional) Frontend subnet id to use when in private mode"
 }
+
+variable "backendpool_name" {
+   description = "Name of backend pool"
+}
+
+variable "loadbalancer_id" {
+  
+}
+
+variable "frontend_name_app" {
+  
+}
