@@ -8,7 +8,8 @@ locals {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         bastion-ftp     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
         # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
-        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 9)}"
+        AppGWSubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 9)}"
+        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 10)}"
     }
 
 
@@ -358,7 +359,7 @@ module "create_BackendPools_app" {
     frontend_name_app   = "${var.frontend_name}-app"
     backendpool_name    = "BEpool_app"
     lb_port             = {
-        http = ["80", "Tcp", "80"]
+        apphttp = ["80", "Tcp", "80"]
    }
 }
 
@@ -373,7 +374,7 @@ module "create_BackendPools_ria" {
     frontend_name_app   = "${var.frontend_name}-ria"
     backendpool_name    = "BEpool_ria"
     lb_port             = {
-        http = ["80", "Tcp", "80"]
+        riahttp = ["80", "Tcp", "80"]
   }
 }
 
@@ -388,7 +389,7 @@ module "create_BackendPools_idm" {
     frontend_name_app   = "${var.frontend_name}-idm"
     backendpool_name    = "BEpool_idm"
     lb_port             = {
-        http = ["80", "Tcp", "80"]
+        idmhttp = ["80", "Tcp", "80"]
         custom = ["5575", "Tcp", "5575"]
         ldap = ["389", "tcp", "389"]
   }
@@ -418,7 +419,7 @@ module "create_app_gateway" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
   prefix              = "appgw"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
+  frontend_subnet_id  = "${module.create_subnets.subnet_ids["AppGWSubnet"]}"
   vnet_name           = "${module.create_vnet.vnet_name}"
 
  

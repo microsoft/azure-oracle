@@ -7,7 +7,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "jkc-retail-rg2"
+    default = "jkc-retail-rg"
 }
 variable "lb_sku" {
     default = "Standard"
