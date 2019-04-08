@@ -64,3 +64,7 @@ variable "backendpool_id" {
   
 }
 
+variable "appgwpool_id" {
+  
+}
+

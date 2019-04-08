@@ -234,6 +234,7 @@ module "create_app" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_app.backendpool_id}"
+  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_1_id}"
 
  
 }
@@ -264,6 +265,7 @@ module "create_idm" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_idm.backendpool_id}"
+  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_2_id}"
 
  
 }
@@ -295,6 +297,7 @@ module "create_integ" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_integ.backendpool_id}"
+  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_3_id}"
 
  
 }
@@ -327,6 +330,7 @@ module "create_RIA" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_ria.backendpool_id}"
+  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_4_id}"
 
  
 }
@@ -346,7 +350,7 @@ module "lb_App" {
 
 
 ############################################################
-# Create Backend Pools with Rules
+# Create Internal LB Backend Pools with Rules
 
 module "create_BackendPools_app" {
   source = "./modules/load_balancer_internal/poolsWithrules"

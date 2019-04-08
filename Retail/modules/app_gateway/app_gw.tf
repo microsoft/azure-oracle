@@ -1,11 +1,11 @@
 
 locals {
-  backend_address_pool_name      = "${var.vnet_name}-beap"
+  backend_address_pool_name      = "${var.vnet_name}-bepool"
   frontend_port_name             = "${var.vnet_name}-feport"
   frontend_ip_configuration_name = "${var.vnet_name}-feip"
-  http_setting_name              = "${var.vnet_name}-be-htst"
+  http_setting_name              = "${var.vnet_name}-be-htset"
   listener_name                  = "${var.vnet_name}-httplstn"
-  request_routing_rule_name      = "${var.vnet_name}-rqrt"
+  request_routing_rule_name      = "${var.vnet_name}-rrule"
 }
 
 resource "azurerm_public_ip" "app_gw" {
@@ -32,8 +32,21 @@ resource "azurerm_application_gateway" "app_gw" {
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = "${local.frontend_port_name}-1"
     port = 80
+  }
+
+    frontend_port {
+    name = "${local.frontend_port_name}-2"
+    port = 81
+  }
+    frontend_port {
+    name = "${local.frontend_port_name}-3"
+    port = 82
+  }
+    frontend_port {
+    name = "${local.frontend_port_name}-4"
+    port = 83
   }
 
   frontend_ip_configuration {
@@ -42,11 +55,51 @@ resource "azurerm_application_gateway" "app_gw" {
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = "${local.backend_address_pool_name}-1"
+
+  }
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}-2"
+
+  }
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}-3"
+
+  }
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}-4"
+
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = "${local.http_setting_name}-1"
+    cookie_based_affinity = "Disabled"
+    path         = "/path1/"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+    backend_http_settings {
+    name                  = "${local.http_setting_name}-2"
+    cookie_based_affinity = "Disabled"
+    path         = "/path1/"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+    backend_http_settings {
+    name                  = "${local.http_setting_name}-3"
+    cookie_based_affinity = "Disabled"
+    path         = "/path1/"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+    backend_http_settings {
+    name                  = "${local.http_setting_name}-4"
     cookie_based_affinity = "Disabled"
     path         = "/path1/"
     port                  = 80
@@ -55,17 +108,62 @@ resource "azurerm_application_gateway" "app_gw" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
+    name                           = "${local.listener_name}-1"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    frontend_port_name             = "${local.frontend_port_name}-1"
     protocol                       = "Http"
   }
 
+  http_listener {
+    name                           = "${local.listener_name}-2"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}-2"
+    protocol                       = "Http"
+  }
+    http_listener {
+    name                           = "${local.listener_name}-3"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}-3"
+    protocol                       = "Http"
+  }
+    http_listener {
+    name                           = "${local.listener_name}-4"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}-4"
+    protocol                       = "Http"
+  }
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = "${local.request_routing_rule_name}-1"
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = "${local.listener_name}-1"
+    backend_address_pool_name  = "${local.backend_address_pool_name}-1"
+    backend_http_settings_name = "${local.http_setting_name}-1"
+  }
+
+  
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}-2"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}-2"
+    backend_address_pool_name  = "${local.backend_address_pool_name}-2"
+    backend_http_settings_name = "${local.http_setting_name}-2"
+  }
+
+  
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}-3"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}-3"
+    backend_address_pool_name  = "${local.backend_address_pool_name}-3"
+    backend_http_settings_name = "${local.http_setting_name}-3"
+  }
+
+  
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}-4"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}-4"
+    backend_address_pool_name  = "${local.backend_address_pool_name}-4"
+    backend_http_settings_name = "${local.http_setting_name}-4"
   }
 }
