@@ -234,8 +234,6 @@ module "create_app" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_app.backendpool_id}"
-  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_1_id}"
-
  
 }
 ###################################################
@@ -265,7 +263,7 @@ module "create_idm" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_idm.backendpool_id}"
-  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_2_id}"
+  # appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_2_id}"
 
  
 }
@@ -297,8 +295,6 @@ module "create_integ" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_integ.backendpool_id}"
-  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_3_id}"
-
  
 }
 
@@ -330,8 +326,6 @@ module "create_RIA" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_ria.backendpool_id}"
-  appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_4_id}"
-
  
 }
 
@@ -425,6 +419,7 @@ module "create_app_gateway" {
   prefix              = "appgw"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["AppGWSubnet"]}"
   vnet_name           = "${module.create_vnet.vnet_name}"
+  lb_frontend_ips        = "${module.lb_App.lb_frontend_ips}"
 
  
 }
