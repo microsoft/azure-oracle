@@ -10,7 +10,7 @@ variable "tags" {
     application = "Oracle EBusinessSuite"
   }
 }
-variable "compute_hostname_prefix_tc" {
+variable "compute_hostname_prefix" {
   description = "Prefix for naming of each Application-server specific resource"
 }
 

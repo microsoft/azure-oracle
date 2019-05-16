@@ -1,5 +1,5 @@
 resource "azurerm_virtual_machine" "bastion" {
-  name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}"
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
   count                         = "${var.bastion_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -16,7 +16,7 @@ resource "azurerm_virtual_machine" "bastion" {
 }
 
   storage_os_disk {
-    name              = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}-disk-OS"
+    name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
     disk_size_gb      = "${var.bastion_boot_volume_size_in_gb}"
@@ -24,7 +24,7 @@ resource "azurerm_virtual_machine" "bastion" {
   }
 
   os_profile {
-    computer_name  = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}"
+    computer_name  = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -49,7 +49,7 @@ resource "azurerm_virtual_machine" "bastion" {
 
 
 resource "azurerm_network_interface" "bastion" {
-  name                          = "${var.compute_hostname_prefix_bastion}-${format("%.02d",count.index + 1)}-nic"  
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
   count                         = "${var.bastion_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"

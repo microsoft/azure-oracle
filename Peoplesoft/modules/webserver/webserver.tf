@@ -1,6 +1,6 @@
 
 resource "azurerm_virtual_machine" "webserver" {
-  name                          = "${var.compute_hostname_prefix_web}-${format("%.02d",count.index + 1)}"
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
   count                         = "${var.webserver_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -18,7 +18,7 @@ resource "azurerm_virtual_machine" "webserver" {
 }
 
   storage_os_disk {
-    name              = "${var.compute_hostname_prefix_web}-${format("%.02d",count.index + 1)}-disk-OS"
+    name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
     disk_size_gb      = "${var.webserver_boot_volume_size_in_gb}"
@@ -26,7 +26,7 @@ resource "azurerm_virtual_machine" "webserver" {
   }
 
   storage_data_disk {
-    name              = "${var.compute_hostname_prefix_web}-${format("%.02d",count.index + 1)}-disk-data-01"    
+    name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-data-01"    
     create_option     = "Empty"
     lun               = 0
     disk_size_gb      = "${var.data_disk_size_gb}"
@@ -34,7 +34,7 @@ resource "azurerm_virtual_machine" "webserver" {
   }
 
   os_profile {
-    computer_name  = "${var.compute_hostname_prefix_web}-${format("%.02d",count.index + 1)}"
+    computer_name  = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -59,7 +59,7 @@ resource "azurerm_virtual_machine" "webserver" {
 }
 
 resource "azurerm_availability_set" "webserver" {
-  name                         = "${var.compute_hostname_prefix_web}-avset"
+  name                         = "${var.compute_hostname_prefix}-avset"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   platform_fault_domain_count  = 2
@@ -70,7 +70,7 @@ resource "azurerm_availability_set" "webserver" {
 
 resource "azurerm_network_interface" "webserver" {
   count                         = "${var.webserver_instance_count}"
-  name                          = "${var.compute_hostname_prefix_web}-${format("%.02d",count.index + 1)}-nic"  
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   enable_accelerated_networking = "${var.enable_accelerated_networking}"

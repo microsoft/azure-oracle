@@ -10,7 +10,7 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
-variable "compute_hostname_prefix_web" {
+variable "compute_hostname_prefix" {
   description = "Prefix for naming of each Application-server specific resource"
 }
 variable "webserver_instance_count" {

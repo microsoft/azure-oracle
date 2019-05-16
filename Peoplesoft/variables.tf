@@ -1,7 +1,6 @@
 variable "tenant_id" {
     description = "Azure AD Tenant GUID for the provisioning subscription. e.g., 33311334-86f1-43af-91ab-2d7cd011d123"
 }
-
 variable "subscription_id" {
     description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
 }
@@ -24,9 +23,11 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
+
+# Host Name Prefixes
 variable "compute_hostname_prefix" {
-  description = "Application server host resource prefix"
-  default = "app"
+ description = "Application server host resource prefix"
+ default = "diag-sa"
 }
 variable "compute_hostname_prefix_app" {
   description = "Application server host resource prefix"
@@ -57,6 +58,9 @@ variable "compute_hostname_prefix_tc" {
   description = "Elastic Search server host resource prefix"
   default = "tc"
 }
+
+# Set instance counts. 
+#Min should be two for Application, Webserver, Elastic and ProSched due to Availablity Set usage.
 variable "compute_instance_count" {
   description = "Application instance count"
   default = 2
@@ -84,6 +88,8 @@ variable "toolsclient_instance_count" {
   default = 1
 }
 
+# This template currently uses the same VM size for all instances, this may need to be customized futher.
+
 variable "vm_size" {
     default = "Standard_D2_V2"
 }
@@ -103,6 +109,8 @@ variable "os_version" {
 variable "storage_account_type" {
     default = "Standard_LRS"
 }
+
+# Set boot volume size for each instance type
 variable "compute_boot_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
   default = 128
@@ -143,6 +151,8 @@ variable "admin_password" {
 }
 variable "custom_data" {
 }
+
+# Set SSH keys for each instance type.
 variable "compute_ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
   default     = "~/.ssh/id_rsa.pub"
