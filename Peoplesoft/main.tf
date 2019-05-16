@@ -299,7 +299,7 @@ module "create_boot_sa" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix}"
 }
 
 
@@ -340,7 +340,7 @@ module "create_app" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -366,12 +366,12 @@ module "create_app" {
 ###################################################
 # Create Webserver
 module "create_web" {
-  source  = "./modules/webserver"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_web = "${var.compute_hostname_prefix_web}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_web}"
   webserver_instance_count    = "${var.webserver_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -395,12 +395,12 @@ module "create_web" {
 ###################################################
 # Create Elastic Search server
 module "create_es" {
-  source  = "./modules/elastic"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_es = "${var.compute_hostname_prefix_es}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_es}"
   elastic_instance_count    = "${var.elastic_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -423,13 +423,13 @@ module "create_es" {
 ###################################################
 # Create Process Scheduler server
 module "create_ps" {
-  source  = "./modules/prosched"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_ps = "${var.compute_hostname_prefix_ps}"
-  prosched_instance_count    = "${var.prosched_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_ps}"
+  prosched_instance_count   = "${var.prosched_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"

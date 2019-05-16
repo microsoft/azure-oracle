@@ -24,7 +24,10 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
-
+variable "compute_hostname_prefix" {
+  description = "Application server host resource prefix"
+  default = "app"
+}
 variable "compute_hostname_prefix_app" {
   description = "Application server host resource prefix"
   default = "app"
