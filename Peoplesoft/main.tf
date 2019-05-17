@@ -8,9 +8,10 @@ locals {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         webserver       = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
         elasticsearch   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
-        database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
-        client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 6)}"
+        client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
+ # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
+        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 10)}"
     }
 
     #####################
