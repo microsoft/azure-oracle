@@ -32,6 +32,19 @@ The modules expect the following variables to be set via tfvars:
 | tenant_id | Azure Tenant GUID |
 | subscription-id | Azure Subscription GUID |
 
+A sample terraform.tfvars file can look like this:
+
+```
+location    = "westus2"
+tags    = {
+    application = "Peoplesoft"
+}
+admin_password  = ""
+custom_data     = ""
+tenant_id       = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+subscription_id = "2fa766df-ed46-4e63-92cb-3c53e7dde77d"
+```
+
 # Information about Modules
 
 ## Compute 
