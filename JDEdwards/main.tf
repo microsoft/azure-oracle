@@ -21,6 +21,19 @@ resource "azurerm_resource_group" "jde-rg" {
   location = "${var.deployment_location}"
 }
 
+/*
+data "azurerm_virtual_network_gateway" "test" { //Temp: Remove later
+    name = "Hub-vNET-ERGW"
+    resource_group_name = "vNetTest"
+}
+
+data "azurerm_express_route_circuit" "test" {
+    name = "AzureOracleCircuit"
+    resource_group_name = "AzureOracleCircuit"
+} */
+
+
+
 # Create the VNET
 module "create_vnet" {
     source = "./network/vnet"
@@ -109,38 +122,6 @@ module "create_virtual_network_ExR_gw" {
     gateway-subnet-id = "${module.create_VPN_GatewaySubnet.subnet_id}"
 }
 
-# Delete this segment after confirming with Ram and before announcement
-# *************************************
-# These segment is a hack
-# Create a temp VNET
-
-module "create_temp_vnet" {
-    source = "./network/vnet"
-
-    vnet_name = "Temp-VNet"
-    resource_group_name = "${azurerm_resource_group.jde-rg.name}"
-    location = "${var.deployment_location}"
-    vnet_cidr = "172.16.255.128/25"
-}
-
-resource "azurerm_virtual_network_peering" "test1" {
-  name                      = "peer1to2"
-  resource_group_name       = "${azurerm_resource_group.jde-rg.name}"
-  virtual_network_name      = "${module.create_vnet.vnet_name}"
-  remote_virtual_network_id = "${module.create_temp_vnet.vnet_id}"
-}
-
-resource "azurerm_virtual_network_peering" "test2" {
-  name                      = "peer2to1"
-  resource_group_name       = "${azurerm_resource_group.jde-rg.name}"
-  virtual_network_name      = "${module.create_temp_vnet.vnet_name}"
-  remote_virtual_network_id = "${module.create_vnet.vnet_id}"
-}
-
-
-# *************************************
-# End of Delete section
-
 
 # Create NSG for Bastion Subnet
 module "bastion_nsg" {
@@ -185,7 +166,7 @@ resource "azurerm_network_security_rule" "nsg_rule_inbound_bastion_subnet" {
 
 
 # TODO: If you don't use the securityrule module, clean it up
-/*module "nsg_rule_bastion_subnet" {
+module "nsg_rule_bastion_subnet" {
     source = "./network/securityrule"
 
     nsg_rule_name = "bastion_outbound"
@@ -200,7 +181,8 @@ resource "azurerm_network_security_rule" "nsg_rule_inbound_bastion_subnet" {
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     nsg_name = "${local.bastion_nsg_name}"
     multiple_ports = false
-}*/
+}
+
 
 # Creating Availability Set for Presentation Tier - JAS
 resource "azurerm_availability_set" "bastion_tier_as" {
@@ -209,6 +191,7 @@ resource "azurerm_availability_set" "bastion_tier_as" {
     resource_group_name = "${azurerm_resource_group.jde-rg.name}"
     managed = true
 }
+
 
 module "create_bastion_host" {
     source = "./vm"
@@ -235,7 +218,7 @@ module "create_bastion_host" {
     assign_public_ip = true
    # depends_on = ["module.bastion_nsg"]
 }
-/* #BoCommented Section for Ram Testing
+
 
 # Creating Availability Set for Admin Tier
 resource "azurerm_availability_set" "admin_tier_as" {
@@ -733,7 +716,7 @@ module "create_middle_tier" {
 
     assign_public_ip = false
 }
-*/ #EoCommented Section for Ram Testing
+
 # Create DB Tier
 /*
 module "create_db_tier" {

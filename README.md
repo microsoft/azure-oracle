@@ -13,7 +13,24 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-# TOC
+# Introduction
 
-- jde => JD Edwards on Azure and OCI (app on Azure and DB on OCI)
-- ebs => E-Business Suite on Azure and OCI (app on Azure and DB on OCI)
+This repository contains terraform modules to deploy Azure-OCI Inter-connect as well as the infrastructure for Oracle applications. The repository conaints modules for deploying the infrastructure for the following Oracle applications:
+
+- [**Oracle E-Business Suite**](azure-oci-cloud-interconnect/tree/master/EBusinessSuite)
+- [**JD Edwards**](azure-oci-cloud-interconnect/tree/master/JDEdwards)
+- [**Oracle Retail**](azure-oci-cloud-interconnect/tree/master/Retail)
+- [**Peoplesoft**](azure-oci-cloud-interconnect/tree/master/Peoplesoft)
+
+# Repository Structure
+
+- InterConnect => Contrains terraform scripts to provision the Azure-OCI Cross-Cloud Interconnect
+- JDEdwards => Contains scripts to provision the infrastructure for Oracle JDEdwards application
+- EBusinessSuite => Contains scripts to provision the infrastructure for Oracle E-Business Suite
+- Retail => Contains scripts to provision the infrastructure for Oracle Retail Suite
+- Peoplesoft => Contains scripts to provision the infrastructure for Oracle Peoplesoft application
+
+# Getting Started
+
+To deploy Oracle Applications on the Cross-Cloud inter-connect, you will first need the inter-connect provisioned. Follow the steps listed [here]() to deploy the inter-connect. Once the inter-connect has been deployed, you can deploy an application on that inter-connect using the terraform modules here. Follow the instructions and guidance detailed in the README file for each application.
+> **Note**: Only infrastructure deployment can be automated using these terraform scripts. To install the specific application on the deployed infrastructure, please refer to the installation guide for that application.
