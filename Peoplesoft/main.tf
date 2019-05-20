@@ -224,19 +224,6 @@ module "create_networkSGsForApplication" {
     inboundOverrides  = "${local.application_sr_inbound}"
     outboundOverrides = "${local.application_sr_outbound}"
 }
-
-module "create_networkSGsForDatabase" {
-    source = "./modules/network/nsgWithRules"
-
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-database"    
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.location}"
-    tags                = "${var.tags}"
-    subnet_id           = "${module.create_subnets.subnet_names["database"]}"
-    inboundOverrides    = "${local.database_sr_inbound}"
-    outboundOverrides   = "${local.database_sr_outbound}"
-}
-
 module "create_networkSGsForWebserver" {
     source = "./modules/network/nsgWithRules"
 
@@ -273,6 +260,25 @@ module "create_networkSGsForClient" {
     outboundOverrides   = "${local.database_sr_outbound}"
 }
 
+locals {
+    # map of subnets which are to have NSGs attached.
+    nsg_ids = {  
+        # Note: if you change the number of subnets in this map, be sure to
+        #       also adjust nsg_ids_len value (below) as well to the new number
+        #       of entries.   The value of nsg_ids_len should be calculated 
+        #       dynamically (e.g., "${length(local.nsg_ids)}"), but terraform then 
+        #       refuses to allow it to be used as a count later.  Thus it is
+        #       "hard-coded" below.   TF 0.12 can work around this, but not 0.11.
+        bastion = "${module.create_networkSGsForBastion.nsg_id}"
+        application = "${module.create_networkSGsForApplication.nsg_id}"
+        webserver = "${module.create_networkSGsForWebserver.nsg_id}"
+        elasticsearch = "${module.create_networkSGsForElasticsearch.nsg_id}"
+        client = "${module.create_networkSGsForClient.nsg_id}"
+    }
+    # Number of entries in nsg_ids. Can't be calculated. See note above.
+    nsg_ids_len = 5
+}
+
 ############################################################################################
 # Create each of the subnets
 module "create_subnets" {
@@ -281,14 +287,8 @@ module "create_subnets" {
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     vnet_name = "${module.create_vnet.vnet_name}"
-    nsg_ids = "${zipmap(
-        list("bastion", "database", "client", "elasticsearch", "webserver", "application"),
-        list(module.create_networkSGsForBastion.nsg_id,
-             module.create_networkSGsForDatabase.nsg_id,
-             module.create_networkSGsForClient.nsg_id,
-             module.create_networkSGsForElasticsearch.nsg_id,
-             module.create_networkSGsForWebserver.nsg_id,
-             module.create_networkSGsForApplication.nsg_id))}"
+    nsg_ids = "${local.nsg_ids}"
+    nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 }
 
 ####################
