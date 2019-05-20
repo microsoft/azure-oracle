@@ -20,31 +20,6 @@ The modules consist of:
 5. Internal Load Balancer 
 6. Application Gateway
 
-# Inputs required in the terraform.tfvars file
-The modules expect the following variables to be set via tfvars:
-
-| Arguement      | Description   | 
-| :------------: | :----------: | 
-| location | Azure Region  | 
-| tags | Any desired tags |
-| admin_password | Can be left blank with empty quotes |
-| custom_data | Can be left blank with empty quotes |
-| tenant_id | Azure Tenant GUID |
-| subscription-id | Azure Subscription GUID |
-
-A sample terraform.tfvars file can look like this:
-
-```
-location    = "westus2"
-tags    = {
-    application = "Peoplesoft"
-}
-admin_password  = ""
-custom_data     = ""
-tenant_id       = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-subscription_id = "2fa766df-ed46-4e63-92cb-3c53e7dde77d"
-```
-
 # Information about Modules
 
 ## Compute 
@@ -71,5 +46,36 @@ One internal load balancer is created with four different frontend IP address co
 
 ## Application Gateway
 One application gateway is created with a single public, frontend IP address.  This frontend configuration includes an HTTP listener and a single Routing Rule. Four backend address pools are created with the IP addresses from the frontend of the internal load balancer used as pool members. Backend HTTP Settings and a URL Path Map is created to route traffic to the various pools using path based routing. 
+
+# Getting Started
+
+This template assumes that an Azure VNET using the 10.2.0.0/16 address space is fitting for your network. If that is not the case, update the VNET_CIDR Variable to reflect an address space that will not conflict with any other networks in your ecosystem. The number used to determine the subnet prefixes can also be adjusted to prevent overlap if you will be running more that one Oracle application in the same Azure VNET. 
+
+
+## Inputs required in the terraform.tfvars file
+The modules expect the following variables to be set via tfvars:
+
+| Arguement      | Description   | 
+| :------------: | :----------: | 
+| location | Azure Region  | 
+| tags | Any desired tags |
+| admin_password | Can be left blank with empty quotes |
+| custom_data | Can be left blank with empty quotes |
+| tenant_id | Azure Tenant GUID |
+| subscription-id | Azure Subscription GUID |
+
+A sample terraform.tfvars file can look like this:
+
+```
+location    = "westus2"
+tags    = {
+    application = "Peoplesoft"
+}
+admin_password  = ""
+custom_data     = ""
+tenant_id       = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+subscription_id = "2fa766df-ed46-4e63-92cb-3c53e7dde77d"
+```
+
 
 
