@@ -8,9 +8,10 @@ locals {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         webserver       = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
         elasticsearch   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
-        database        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
-        client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
-        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 6)}"
+        client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
+        bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
+ # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
+        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 10)}"
     }
 
     #####################
@@ -223,19 +224,6 @@ module "create_networkSGsForApplication" {
     inboundOverrides  = "${local.application_sr_inbound}"
     outboundOverrides = "${local.application_sr_outbound}"
 }
-
-module "create_networkSGsForDatabase" {
-    source = "./modules/network/nsgWithRules"
-
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-database"    
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.location}"
-    tags                = "${var.tags}"
-    subnet_id           = "${module.create_subnets.subnet_names["database"]}"
-    inboundOverrides    = "${local.database_sr_inbound}"
-    outboundOverrides   = "${local.database_sr_outbound}"
-}
-
 module "create_networkSGsForWebserver" {
     source = "./modules/network/nsgWithRules"
 
@@ -272,6 +260,25 @@ module "create_networkSGsForClient" {
     outboundOverrides   = "${local.database_sr_outbound}"
 }
 
+locals {
+    # map of subnets which are to have NSGs attached.
+    nsg_ids = {  
+        # Note: if you change the number of subnets in this map, be sure to
+        #       also adjust nsg_ids_len value (below) as well to the new number
+        #       of entries.   The value of nsg_ids_len should be calculated 
+        #       dynamically (e.g., "${length(local.nsg_ids)}"), but terraform then 
+        #       refuses to allow it to be used as a count later.  Thus it is
+        #       "hard-coded" below.   TF 0.12 can work around this, but not 0.11.
+        bastion = "${module.create_networkSGsForBastion.nsg_id}"
+        application = "${module.create_networkSGsForApplication.nsg_id}"
+        webserver = "${module.create_networkSGsForWebserver.nsg_id}"
+        elasticsearch = "${module.create_networkSGsForElasticsearch.nsg_id}"
+        client = "${module.create_networkSGsForClient.nsg_id}"
+    }
+    # Number of entries in nsg_ids. Can't be calculated. See note above.
+    nsg_ids_len = 5
+}
+
 ############################################################################################
 # Create each of the subnets
 module "create_subnets" {
@@ -280,14 +287,8 @@ module "create_subnets" {
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     vnet_name = "${module.create_vnet.vnet_name}"
-    nsg_ids = "${zipmap(
-        list("bastion", "database", "client", "elasticsearch", "webserver", "application"),
-        list(module.create_networkSGsForBastion.nsg_id,
-             module.create_networkSGsForDatabase.nsg_id,
-             module.create_networkSGsForClient.nsg_id,
-             module.create_networkSGsForElasticsearch.nsg_id,
-             module.create_networkSGsForWebserver.nsg_id,
-             module.create_networkSGsForApplication.nsg_id))}"
+    nsg_ids = "${local.nsg_ids}"
+    nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 }
 
 ####################
@@ -299,7 +300,7 @@ module "create_boot_sa" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix}"
 }
 
 
@@ -313,7 +314,7 @@ module "create_bastion" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_bastion = "${var.compute_hostname_prefix_bastion}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_bastion}"
   bastion_instance_count    = "${var.bastion_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -340,7 +341,7 @@ module "create_app" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -371,8 +372,8 @@ module "create_web" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_web = "${var.compute_hostname_prefix_web}"
-  webserver_instance_count    = "${var.webserver_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_web}"
+  webserver_instance_count  = "${var.webserver_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
@@ -395,26 +396,26 @@ module "create_web" {
 ###################################################
 # Create Elastic Search server
 module "create_es" {
-  source  = "./modules/elastic"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_es = "${var.compute_hostname_prefix_es}"
-  elastic_instance_count    = "${var.elastic_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_es}"
+  compute_instance_count    = "${var.elastic_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  elastic_boot_volume_size_in_gb    = "${var.elastic_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.elastic_boot_volume_size_in_gb}"
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  elastic_ssh_public_key    = "${var.elastic_ssh_public_key}"
+  compute_ssh_public_key    = "${var.elastic_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["elasticsearch"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
@@ -423,26 +424,26 @@ module "create_es" {
 ###################################################
 # Create Process Scheduler server
 module "create_ps" {
-  source  = "./modules/prosched"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_ps = "${var.compute_hostname_prefix_ps}"
-  prosched_instance_count    = "${var.prosched_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_ps}"
+  compute_instance_count   = "${var.prosched_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  prosched_boot_volume_size_in_gb    = "${var.prosched_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.prosched_boot_volume_size_in_gb}"
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  prosched_ssh_public_key    = "${var.prosched_ssh_public_key}"
+  compute_ssh_public_key    = "${var.prosched_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
@@ -458,7 +459,7 @@ module "create_toolsclient" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_tc = "${var.compute_hostname_prefix_tc}"
+  compute_hostname_prefix  = "${var.compute_hostname_prefix_tc}"
   toolsclient_instance_count    = "${var.toolsclient_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   

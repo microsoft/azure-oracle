@@ -1,5 +1,5 @@
 resource "azurerm_virtual_machine" "toolsclient" {
-  name                          = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}"
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
   count                         = "${var.toolsclient_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -16,7 +16,7 @@ resource "azurerm_virtual_machine" "toolsclient" {
 }
 
   storage_os_disk {
-    name              = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}-disk-OS"
+    name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
     disk_size_gb      = "${var.toolsclient_boot_volume_size_in_gb}"
@@ -24,7 +24,7 @@ resource "azurerm_virtual_machine" "toolsclient" {
   }
 
   os_profile {
-    computer_name  = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}"
+    computer_name  = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
     custom_data    = "${var.custom_data}"
@@ -47,9 +47,8 @@ resource "azurerm_virtual_machine" "toolsclient" {
       }
 }
 
-
 resource "azurerm_network_interface" "toolsclient" {
-  name                          = "${var.compute_hostname_prefix_tc}-${format("%.02d",count.index + 1)}-nic"  
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
   count                         = "${var.toolsclient_instance_count}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
