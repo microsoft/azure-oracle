@@ -1,5 +1,5 @@
 # Create a gateway of type ExpressRoute for the given vNet.
-# To do
+# Todo
 #      confirm the gw sku type
 locals {
   name                = "${var.vnet_name}-ERGW"

@@ -1,6 +1,6 @@
 {
     "deployment_tag": "cross-cloud-test",
-    "resource_group_name": "romit-test-resourcegroup",
+    "resource_group_name": "test-resourcegroup",
     "deployment_location": "East US",
     "peering_location": "Washington DC",
     "bandwidth_in_mbps": "1000",
