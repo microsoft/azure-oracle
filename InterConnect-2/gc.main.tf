@@ -3,24 +3,6 @@ resource "azurerm_resource_group" "er_rg" {
   location = "${var.deployment_location}"
 }
 
-# To do, before public preview,
-#     change the service provider name
-#     change the SKU to local or its equivalent (check w/ Karthik)
-# Create the ExpressRoute circuit to OCI under a resource group
-resource "azurerm_express_route_circuit" "Az2OCI" {
-  name                  = "${azurerm_resource_group.er_rg.name}-Az2OCI-ER-Circuit"
-  resource_group_name   = "${azurerm_resource_group.er_rg.name}"
-  location              = "${var.deployment_location}"
-  service_provider_name = "Test Provider With Charges"
-  peering_location      = "${var.peering_location}"
-  bandwidth_in_mbps     = "${var.bandwidth_in_mbps}"
-
-  sku {
-    tier   = "Standard"
-    family = "MeteredData"
-  }
-}
-
 # Check if a VNET exists
 data "azurerm_virtual_network" "primary_vnet" {
   name = "${var.vnet_name}"
@@ -78,12 +60,12 @@ locals {
 
 # Get information about an existing ER Gateway
 data "azurerm_virtual_network_gateway" "expressroute_gateway" {
-  name = "${var.er_gateway_name}"
+  name = "${var.express_route_gateway_name}"
   resource_group_name = "${azurerm_resource_group.er_rg.name}"
-  count = "${var.er_gateway_name != "0" ? 1 : 0}"
+  count = "${var.express_route_gateway_name != "0" ? 1 : 0}"
 }
 
-# Create a new ER Gateway  //Start here: Create an ER Gateway
+# Create a new ER Gateway
 module "expressroute_gateway" {
   source = "./gateway"
 
@@ -91,7 +73,9 @@ module "expressroute_gateway" {
   location = "${var.deployment_location}"
   resource_group_name = "${azurerm_resource_group.er_rg.name}"
   gateway_subnet_id = "${local.gateway_subnet_id}"
-  create_new_gateway = "${var.er_gateway_name != "0" || element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.type, list("")), 0) == "ExpressRoute" ? 0: 1}"
+
+  # Ensure that there is no Gateway already present. If there is, then we need to ensure that it is not of type ExpressRoute Gateway in order to create a new one.
+  create_new_gateway = "${var.express_route_gateway_name != "0" || element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.type, list("")), 0) == "ExpressRoute" ? 0: 1}"
 }
 
 
@@ -127,34 +111,23 @@ resource "azurerm_virtual_network_peering" "test2" {
 # *************************************
 # End of hack section
 
-     
-# Create private peering under our ExpressRoute circuit
-resource "azurerm_express_route_circuit_peering" "test" {
-  peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.Az2OCI.name}"
-  resource_group_name           = "${azurerm_resource_group.er_rg.name}"
-  peer_asn                      = 31898 #ASN of Oracle
-  primary_peer_address_prefix   = "${cidrsubnet(var.pvt_peering_subnet, 1, 0)}"
-  secondary_peer_address_prefix = "${cidrsubnet(var.pvt_peering_subnet, 1, 1)}"
-  vlan_id                       = "${var.pvt_peering_vlanID}"
+data "azurerm_express_route_circuit" "ER_circuit" {
+    resource_group_name = "${var.resource_group_name}"
+    name = "${var.express_route_name}"
 }
 
-
-# Start here: This is only possible when the circuit is provisioned. Need to remove this from here and add it to a new file where we first do a data for express route and then do gateway connection
-/*
 resource "azurerm_virtual_network_gateway_connection" "Az2OCI-ER-conn" {
   name                = "${var.resource_group_name}-Az2OCI-ER-conn"
   location            = "${var.deployment_location}"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
-
+  resource_group_name = "${var.resource_group_name}"
   type                       = "ExpressRoute"
-  virtual_network_gateway_id = "${var.er_gateway_name == "0" ?
-    element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.id, list("")), 0) :
-    module.expressroute_gateway.vnet_gw_id}"
-
-
-  express_route_circuit_id = "${azurerm_express_route_circuit.Az2OCI.id}"
+  virtual_network_gateway_id = "${var.express_route_gateway_name == "0" ? 
+    module.expressroute_gateway.vnet_gw_id : 
+    element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.id, list("")), 0)}"
+  express_route_circuit_id = "${data.azurerm_express_route_circuit.ER_circuit.id}"
 
   #The following boolean variable allows datapath connection to bypass VNet GW.
   express_route_gateway_bypass = "true"
-} */
+  
+  count = "${data.azurerm_express_route_circuit.ER_circuit.service_provider_provisioning_state == "Provisioned" ? 1 : 0}"
+}

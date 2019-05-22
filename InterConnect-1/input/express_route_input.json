@@ -1,0 +1,9 @@
+{
+    "deployment_tag": "cross-cloud-test",
+    "resource_group_name": "romit-test-resourcegroup",
+    "deployment_location": "East US",
+    "peering_location": "Washington DC",
+    "bandwidth_in_mbps": "1000",
+    "pvt_peering_subnet": "192.168.254.0/29",
+    "pvt_peering_vlanID": 100,
+}
