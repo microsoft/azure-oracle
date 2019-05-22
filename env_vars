@@ -1,0 +1,15 @@
+### Authentication details
+export TF_VAR_tenant_id="<Azure_Tenant_ID>"
+export TF_VAR_subscription_id="<Azure Subscription ID>"
+export TF_VAR_client_id="<AAD_Service_Principal_App_ID>"
+export TF_VAR_client_secret="<AAD_Service_Principal_Client_Secret>"
+
+### Environment
+export TF_VAR_environment = <dev/test/prod/etc>
+
+### Region
+export TF_VAR_deployment_location="<Azure Region to deploy in>"
+
+### Username/Password for Bastion VM
+export TF_VAR_vm_admin_username = <Admin Username for Bastion VM>
+export TF_VAR_vm_admin_password = <Admin Password for Bastion VM>
