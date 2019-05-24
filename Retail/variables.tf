@@ -7,7 +7,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "jkc-retail-rg2"
+    default = "jkc-retail-rgtest"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -25,10 +25,6 @@ variable "tags" {
   }
 }
 
-variable "compute_hostname_prefix_web" {
-  description = "Application server host resource prefix"
-  default = "web"
-}
 variable "compute_hostname_prefix_bastion" {
   description = "Application server host resource prefix"
   default = "bastion"
@@ -142,6 +138,21 @@ variable "vnet_cidr" {
 
 variable "frontend_name" {
   default = "app-lb"
+}
+
+variable "create_public_ip" {
+  default = false
+}
+variable "create_av_set" {
+  default = true
+}
+variable "create_data_disk" {
+  default = true
+}
+
+variable "prefix" {
+  description = "(Required) Default prefix to use with your resource names."
+  default     = "azure_lb"
 }
 
 
