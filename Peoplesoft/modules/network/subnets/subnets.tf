@@ -18,6 +18,7 @@ resource "azurerm_subnet" "subnet" {
 resource "azurerm_subnet_network_security_group_association" "associateSubnetWithNSG" {
   subnet_id                 = "${element(azurerm_subnet.subnet.*.id,count.index)}"
   network_security_group_id = "${element(values(var.nsg_ids),count.index)}"
-  count = "${length(var.subnet_cidr_map)}"
+  count = "${var.nsg_ids_len}"
   depends_on = [ "azurerm_subnet.subnet" ]
 }
+

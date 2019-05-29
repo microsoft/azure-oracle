@@ -14,19 +14,14 @@ The modules will deploy a single Azure VNET with four subnets. Each subnet will 
 The modules consist of:
 
 1. Compute
-2. Bastion 
-3. Storage
-4. Network (VNET, Subnets and NSGs)
-5. Internal Load Balancer 
-6. Application Gateway
+1. Storage
+1. Network (VNET, Subnets, NSGs, Load Balancer Rules)
+1. Application Gateway
 
-# Information about Modules
+# Information about Main and Modules
 
 ## Compute 
-This template module is used by "create_app", "create_idm", "create_integ" and "create_RIA". The instance count of each is set to 2.  These VMs will all be deployed as part an Azure availabilty set, one AV-set per application type. Each VM will also be associated with a backend pool on the internal load balancer.
-
-## Bastion
-This template module is used by both "create_bastion" and "create_ftp" and the instance count of each is set to 1. Variables for separate SSH keys for access are provided in the template. These VMs will all be deployed with individual public IP addresses and without begin part of an Azure availabilty set.
+This template module is used by all the modules creating computer resources. Depending on the settings, these VMs will be deployed as part an Azure availabilty set (one AV-set per application type), with or without a public IP address or data disk and as part of a backend pool of the load balancer.  These settings can be adjusted by using true or false entries in the in main.tf.
 
 ## Storage
 The Storage module creates one randomly named locally redundant storage account. This storage account is used for the Azure diagnostics logs for all the VMs. 
@@ -39,7 +34,7 @@ The required subnets are:
 1. Application Subnet - Used for the various retail application VMs. Includes and NSG for SSH access from the Bastion-FTP subnet to VMs on this subnet. This subnet does not accept any connections directly from hosts on the Internet.
 2. Bastion-FTP Subnet - Used for the Bastion and FTP VMs. Includes an NSG for SSH access to all the VMs on this subnet from the Internet.
 3. AppGWSubnet -  Used for the application gateway service.
-4. GatewaySubnet - Used for connectivity to the OCI network using ExpressRoute. The name of this subnet can not be changed.
+4. GatewaySubnet - Used for connectivity to the OCI network using ExpressRoute. The name of this subnet can not be changed and depending on your Azure configuration, may already exist.  
 
 ## Internal LB
 One internal load balancer is created with four different frontend IP address configurations. The IP addresses used will be dynamically pulled from the Application subnet. Four corresponding backend pools are created and the ports open on each of these pool is configurable in the main.tf.  By default, the "Standard" SKU level is used. The frontend IP addresses are captured as output to be used by the Application Gateway. 
@@ -69,12 +64,12 @@ A sample terraform.tfvars file can look like this:
 ```
 location    = "westus2"
 tags    = {
-    application = "Peoplesoft"
+    application = "Retail"
 }
-admin_password  = ""
-custom_data     = ""
-tenant_id       = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-subscription_id = "2fa766df-ed46-4e63-92cb-3c53e7dde77d"
+admin_password  = "<GUID>"
+custom_data     = "<GUID>"
+tenant_id       = "<GUID>"
+subscription_id = "<GUID>"
 ```
 
 

@@ -62,10 +62,6 @@ locals {
 
     application_sr_outbound = [
         {
-            source_port_ranges =  "*" 
-            source_address_prefix = "*" 
-            destination_port_ranges =  "1521"            
-            destination_address_prefix = "${local.subnetPrefixes["database"]}"  # out to DB
         }
         #TODO:
         # outbound to file service
@@ -187,14 +183,13 @@ resource "azurerm_resource_group" "rg" {
 
 ############################################################################################
 # Create the virtual network
-module "create_vnet" {
-    source = "./modules/network/vnet"
 
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.location}"
-    tags                = "${var.tags}"    
-    vnet_cidr           = "${var.vnet_cidr}"
-    vnet_name           = "${var.vnet_name}"
+resource "azurerm_virtual_network" "vnet" {
+  name                = "${var.vnet_name}"
+  resource_group_name = "${var.resource_group_name}"
+  location            = "${var.location}"
+  address_space       = ["${var.vnet_cidr}"]  
+  tags                = "${var.tags}"
 }
 
 ###############################################################
@@ -204,7 +199,7 @@ module "create_vnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-bastion"
+    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-bastion"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
@@ -216,7 +211,7 @@ module "create_networkSGsForBastion" {
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "${module.create_vnet.vnet_name}-nsg-application"    
+    nsg_name = "${azurerm_virtual_network.vnet.name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
@@ -227,7 +222,7 @@ module "create_networkSGsForApplication" {
 module "create_networkSGsForWebserver" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-webserver"    
+    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-webserver"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
@@ -239,7 +234,7 @@ module "create_networkSGsForWebserver" {
 module "create_networkSGsForElasticsearch" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-elasticsearch"    
+    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-elasticsearch"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
@@ -251,7 +246,7 @@ module "create_networkSGsForElasticsearch" {
 module "create_networkSGsForClient" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-client"    
+    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-client"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
@@ -275,8 +270,9 @@ locals {
         elasticsearch = "${module.create_networkSGsForElasticsearch.nsg_id}"
         client = "${module.create_networkSGsForClient.nsg_id}"
     }
-    # Number of entries in nsg_ids. Can't be calculated. See note above.
     nsg_ids_len = 5
+    # Number of entries in nsg_ids. Can't be calculated. See note above.
+    
 }
 
 ############################################################################################
@@ -286,9 +282,10 @@ module "create_subnets" {
 
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${module.create_vnet.vnet_name}"
+    vnet_name = "${azurerm_virtual_network.vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
+
 }
 
 ####################
@@ -309,27 +306,34 @@ module "create_boot_sa" {
 # Create bastion host
 
 module "create_bastion" {
-  source  = "./modules/bastion"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
   compute_hostname_prefix   = "${var.compute_hostname_prefix_bastion}"
-  bastion_instance_count    = "${var.bastion_instance_count}"
+  compute_instance_count    = "${var.bastion_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  bastion_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  bastion_ssh_public_key    = "${var.bastion_ssh_public_key}"
+  compute_ssh_public_key    = "${var.bastion_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = false  
+  create_public_ip          = true
+  create_data_disk          = false
+  assign_bepool             = false
+  data_disk_size_gb         = "${var.data_disk_size_gb}"
+  data_sa_type              = "${var.data_sa_type}"
+  
 }
 
 
@@ -359,7 +363,10 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-
+  create_av_set             = true 
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = false
  
 }
 
@@ -367,30 +374,34 @@ module "create_app" {
 ###################################################
 # Create Webserver
 module "create_web" {
-  source  = "./modules/webserver"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
   compute_hostname_prefix   = "${var.compute_hostname_prefix_web}"
-  webserver_instance_count  = "${var.webserver_instance_count}"
+  compute_instance_count  = "${var.webserver_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  webserver_boot_volume_size_in_gb    = "${var.webserver_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.webserver_boot_volume_size_in_gb}"
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  webserver_ssh_public_key    = "${var.webserver_ssh_public_key}"
+  compute_ssh_public_key    = "${var.webserver_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["webserver"]}"
   backendpool_id            = "${module.lb.backendpool_id}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = true 
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = true
 }
 
 ###################################################
@@ -419,6 +430,10 @@ module "create_es" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["elasticsearch"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = true 
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = false
 }
 
 ###################################################
@@ -447,6 +462,10 @@ module "create_ps" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = true 
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = false
 
  
 }
@@ -454,27 +473,33 @@ module "create_ps" {
 # Create Tools Client machine
 
 module "create_toolsclient" {
-  source  = "./modules/toolsclient"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
   compute_hostname_prefix  = "${var.compute_hostname_prefix_tc}"
-  toolsclient_instance_count    = "${var.toolsclient_instance_count}"
+  compute_instance_count    = "${var.toolsclient_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  toolsclient_boot_volume_size_in_gb    = "${var.toolsclient_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.toolsclient_boot_volume_size_in_gb}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  toolsclient_ssh_public_key    = "${var.toolsclient_ssh_public_key}"
+  compute_ssh_public_key    = "${var.toolsclient_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["client"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = false
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = false
+  data_disk_size_gb         = "${var.data_disk_size_gb}"
+  data_sa_type              = "${var.data_sa_type}"
 }
 
 

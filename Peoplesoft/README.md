@@ -11,28 +11,18 @@ These Terraform modules allow you to create and provision infrastructure for Peo
 The modules consist of:
 
 1. Compute
-2. Bastion
-3. Elastic
-4. Load Balancer
-5. Network
+1. Load Balancer
+1. Network
+1. Storage
 
 
 # Azure Architecture 
-The modules will deploy a single Azure VNET with X subnets. Each subnet will have a related NSG to control traffic between different application layers.  
+The modules will deploy a single Azure VNET with at least 5 subnets. Each subnet will have a related NSG to control traffic between different application layers.  
 
 # Information about Modules
 
 ## Compute 
-This template module is used by "create_app", "create_prosched", and "create_es". The instance count of each is set to 2.  These VMs will all be deployed as part an Azure availabilty set, one AV-set per application type. Each VM will also be associated with a backend pool on the internal load balancer.
-
-## Bastion
-This template module is used by "create_bastion" and the instance count is set to 1. Variables for separate SSH keys for access are provided in the template. This VM will be deployed with individual public IP addresses and without begin part of an Azure availabilty set.
-
-## Webserver
-This template module is used by "create_web". It is very similar to the compute module with the addition of the associations to the backend pool of the load balancer. The instance count of each is set to 2.  These VMs will all be deployed as part an Azure availabilty set, one AV-set per application type. Each VM will also be associated with a backend pool on the internal load balancer.
-
-## Tools Client
-This template module is used by "create_toolsclient". It is very similar to the bastion module and the instance count is set to 1. Variables for separate SSH keys for access are provided in the template. This VM will be deployed without begin part of an Azure availabilty set.
+This template module is used to create all VM resources. Some configuration is dependent on the true/false settings for AV Set, Public IP, Backend Pools and Data Disks. Machines deployed with AV sets need to have two VMs of the same type deployed. 
 
 ## Storage
 The Storage module creates one randomly named locally redundant storage account. This storage account is used for the Azure diagnostics logs for all the VMs. 
@@ -44,10 +34,10 @@ The required subnets are:
 
 1. Application Subnet - Used for application and process scheduler VMs. Includes and NSG for SSH access from the Bastion subnet to VMs on this subnet. This subnet does not accept any connections directly from hosts on the Internet.
 1. Bastion Subnet - Used for the Bastion VM. Includes an NSG for SSH access to all the VMs on this subnet from the Internet.
-1. Webserver Subnet -
+1. Webserver Subnet - 
 1. Elastic Search Subnet -
 1. Client Subnet -
-1. GatewaySubnet - Used for connectivity to the OCI network using ExpressRoute. The name of this subnet can not be changed.
+1. GatewaySubnet - Used for connectivity to the OCI network using ExpressRoute. The name of this subnet can not be changed and depending on your Azure configuration, may already exist.  
 
 ## Load Balancer
 One load balancer is created with one frontend IP address configuration with an Public IP address. Four corresponding backend pools are created and the ports open on each of these pool is configurable in the main.tf.  By default, the "Standard" SKU level is used. 
@@ -75,9 +65,9 @@ location    = "westus2"
 tags    = {
     application = "Peoplesoft"
 }
-admin_password  = ""
-custom_data     = ""
-tenant_id       = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-subscription_id = "2fa766df-ed46-4e63-92cb-3c53e7dde77d"
+admin_password  = "<GUID>"
+custom_data     = "<GUID>"
+tenant_id       = "<GUID>"
+subscription_id = "<GUID>"
 ```
 
