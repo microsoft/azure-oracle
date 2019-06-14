@@ -64,13 +64,14 @@ We will discuss the details of **InterConnect-1** here.
     ![](./../_images/express_route_service_key.png)
 
 #### What will this do?
+
 Running through the above instructions will create an ExpressRoute circuit with Oracle Cloud Infrastructure as the provider. In addition, ExpressRoute peering of type 'AzurePrivatePeering' will be setup once your Oracle FastConnect circuit is provisioned (manually). This requires specifying two private IP address spaces of /30 each, which is non overlapping to either your Azure VNET or your OCI VCN. Careful planning must be done to ensure that the address space does not overlap. The IP address space will be used to setup the connection with Oracle Cloud Infrastructure. Two links are setup to ensure a redundant connection between the two clouds. If setting up the inter-connect manually, please refer to the [Interconnect documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/configure-azure-oci-networking) for further details.
 
-At the end of provisioning, The ExpressRoute service key will be output, which will be required to setup the Oracle FastConnect circuit & Dynamic Routing Gateway.
+At the end of provisioning, The ExpressRoute service key will be output, which will be required to setup the Oracle FastConnect circuit.
 
-### Setting up the Oracle FastConnect Circuit
+### Setting up the Oracle FastConnect Circuit & Dynamic Routing Gateway
 
-The Oracle FastConnect setup hasn't been automated yet. Please refer to the [Oracle documentation](https://docs.cloud.oracle.com/iaas/Content/Network/Concepts/azure.htm) for more details on setting up Oracle FastConnect.
+The Oracle FastConnect & Dynamic Routing Gateway setup hasn't been automated yet. Please refer to the [Oracle documentation](https://docs.cloud.oracle.com/iaas/Content/Network/Concepts/azure.htm) for more details on setting up Oracle FastConnect.
 
 ## Next Steps
 
