@@ -1,6 +1,6 @@
 # Introduction
 
-The terraform scripts contained here allow you to deploy the first step of the cross-cloud inter-connect between Microsoft and Oracle Cloud Infrastructure, specifically creating the network connection between Microsoft Azure and OCI. 
+The terraform scripts contained here allow you to deploy the first step of the cross-cloud inter-connect between Microsoft and Oracle Cloud Infrastructure, specifically creating the network connection between Microsoft Azure and OCI.
 
 If you have already established connectivity and are looking for instructions on connecting your VNET and/or VCN to your circuit, please refer to [InterConnect-2](azure-oci-cloud-interconnect/tree/master/InterConnect-2)
 
@@ -57,20 +57,34 @@ We will discuss the details of **InterConnect-1** here.
 
 1. Next, run the `terraform apply` command as follows:
 
-    `$ terraform apply -var-file ./../input/express_route_input.json`
+    `$ terraform apply -var-file ./input/express_route_input.json`
 
 1. This will create the required Azure resources. You will see the output as follows. Please copy the `expressroute_service_key`. **You will need it to create the OCI FastConnect Circuit**.
 
     ![](./../_images/express_route_service_key.png)
 
 #### What will this do?
-Running through the above instructions will create an ExpressRoute circuit with Oracle Cloud Infrastructure as the provider. In addition, ExpressRoute peering of type 'AzurePrivatePeering' will be setup. This requires specifying a private IP space of /29, which is non overlapping to either your Azure VNET or your OCI VCN. Careful planning must be done to ensure that the address space does not overlap. The /29 IP space will be split into two subnets of /30, which will be used to setup the tunnel with Oracle Cloud Infrastructure. Two subnets are setup to ensure a redundant connection between the two clouds. If setting up the inter-connect manually, please refer to the documentation for further details. ##TODO: Add documentation link.
+Running through the above instructions will create an ExpressRoute circuit with Oracle Cloud Infrastructure as the provider. In addition, ExpressRoute peering of type 'AzurePrivatePeering' will be setup once your Oracle FastConnect circuit is provisioned (manually). This requires specifying two private IP address spaces of /30 each, which is non overlapping to either your Azure VNET or your OCI VCN. Careful planning must be done to ensure that the address space does not overlap. The IP address space will be used to setup the connection with Oracle Cloud Infrastructure. Two links are setup to ensure a redundant connection between the two clouds. If setting up the inter-connect manually, please refer to the [Interconnect documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/configure-azure-oci-networking) for further details.
 
-At the end of provisioning, The ExpressRoute service key will be output, which will be required to setup the Oracle FastConnect circuit.
+At the end of provisioning, The ExpressRoute service key will be output, which will be required to setup the Oracle FastConnect circuit & Dynamic Routing Gateway.
 
 ### Setting up the Oracle FastConnect Circuit
 
-TODO> Setup FastConnect, VCN and DRG
+The Oracle FastConnect setup hasn't been automated yet. Please refer to the [Oracle documentation](https://docs.cloud.oracle.com/iaas/Content/Network/Concepts/azure.htm) for more details on setting up Oracle FastConnect.
+
+## Next Steps
+
+Once your FastConnect circuit has been provisioned, navigate to the [InterConnect-2](./../InterConnect-2) folder and follow the instructions.
+
+## Deleting/De-provisioning the Interconnect Link
+
+The interconnect cannot be deprovisioned using Terraform. You can follow the manual steps listed below or use the corresponding REST API or SDKs to deprovision the interconnect.
+
+1. Delete the connection between the Virtual Network Gateway and the Express Route circuit in Azure.
+1. Delete/deprovision the FastConnect circuit in OCI.
+1. Delete/deprovision the ExpressRoute circuit in Azure.
+
+More information on this topic can be found in the [Azure documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/configure-azure-oci-networking).
 
 # Terraform Variables
 
@@ -79,11 +93,13 @@ TODO> Setup FastConnect, VCN and DRG
     > **Note**: Please add the region name as shown in the link above. For example, US East region code 'East US'.
 - `peering_location`: The name of the peering location and not the Azure resource location.
 - `bandwidth_in_mbps`: The bandwidth in Mbps of the ExpressRoute circuit being created. Round down the Mb to the nearest 1000 for Gbps. E.g.: For 1 Gbps connection, enter 1000 Mbps.
-- `pvt_peering_subnet`: A /29 IP space which would be split into two /30 subnets for the primary and the secondary link to OCI.
-- `pvt_peering_vlanID`: A valid VLAN ID to establish this peering on. Defaults to '100'.
+- `pvt_peering_primary_subnet`: A /30 subnet for the primary link to OCI. This should be a private IP address space and should not overlap with your Azure VNET space or OCI VCN space. Note this address space down as you will need it while setting up OCI FastConnect.
+- `pvt_peering_secondary_subnet`: A /30 subnet for the secondary link to OCI. This should be a private IP address space and should not overlap with your Azure VNET space or OCI VCN space. Note this address space down as you will need it while setting up OCI FastConnect.
+- `expressroute_sku`: The ExpressRoute Service tier. Possible values are 'Standard' or 'Premium'
+- `expressroute_billing_model`: The ExpressRoute billing model for bandwidth to be used. Possible values are 'UnlimitedData' or 'MeteredData'
 
 # Resources
 
 Azure Terraform Provider Documentation -> [https://www.terraform.io/docs/providers/azurerm](https://www.terraform.io/docs/providers/azurerm)
 
-TODO: Add a link to Oracle on Azure documentation
+Azure-Oracle Interconnect Overview -> [https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/oracle-oci-overview](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/oracle-oci-overview)

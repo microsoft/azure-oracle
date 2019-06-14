@@ -44,11 +44,6 @@ locals {
     element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
     element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
 
- /* vnet_address_space = "${var.vnet_cidr == "0" ? 
-    element(concat(element(data.azurerm_virtual_network.primary_vnet.*.address_spaces, 0), list("")), 0) :
-    element(concat(azurerm_virtual_network.primary_vnet.*.address_space, list("")), 0)}"
-*/
-
   gateway_subnet_id = "${var.GatewaySubnet_cidr == "0" ?
     element(concat(data.azurerm_subnet.gateway_subnet.*.id, list("")), 0) :
     element(concat(azurerm_subnet.gateway_subnet.*.id, list("")), 0)}"
@@ -77,39 +72,6 @@ module "expressroute_gateway" {
   # Ensure that there is no Gateway already present. If there is, then we need to ensure that it is not of type ExpressRoute Gateway in order to create a new one.
   create_new_gateway = "${var.express_route_gateway_name != "0" || element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.type, list("")), 0) == "ExpressRoute" ? 0: 1}"
 }
-
-
-# *************************************
-# This segment is a hack and will not be needed after announcement
-# Create a temp VNET in order to enable ExpressRoute Gateway Bypass.
-
-resource "azurerm_virtual_network" "temporary_vnet" {
-  name = "Temp-VNET"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
-  location = "${var.deployment_location}"
-  address_space = ["172.16.255.128/25"]
-}
-
-resource "azurerm_virtual_network_peering" "test1" {
-  name                      = "peer1to2"
-  resource_group_name       = "${azurerm_resource_group.er_rg.name}"
-  virtual_network_name      = "${local.vnet_name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.temporary_vnet.id}"
-  
-  depends_on = ["azurerm_subnet.gateway_subnet"]
-}
-
-resource "azurerm_virtual_network_peering" "test2" {
-  name                      = "peer2to1"
-  resource_group_name       = "${azurerm_resource_group.er_rg.name}"
-  virtual_network_name      = "${azurerm_virtual_network.temporary_vnet.name}"
-  remote_virtual_network_id = "${local.vnet_id}"
-
-  depends_on = ["azurerm_subnet.gateway_subnet"]
-}
-
-# *************************************
-# End of hack section
 
 data "azurerm_express_route_circuit" "ER_circuit" {
     resource_group_name = "${var.resource_group_name}"

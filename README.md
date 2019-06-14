@@ -28,6 +28,7 @@ In the near future, this repository will contain modules for deploying the infra
 - [InterConnect-2](/InterConnect-2) => Contains modules for the second step to provisioning the inter-connect.
 
 **Future**:
+
 - JDEdwards => Scripts to provision the infrastructure for Oracle JDEdwards application
 - EBusinessSuite => Scripts to provision the infrastructure for Oracle E-Business Suite
 - Retail => Scripts to provision the infrastructure for Oracle Retail Merchandising Suite
