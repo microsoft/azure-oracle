@@ -11,16 +11,16 @@ The repository contains modules for deploying the inter-connect between Microsof
 - [**InterConnect-1:**](/InterConnect-1) This is the first step to establishing inter-connectivity.
 - [**InterConnect-2:**](/InterConnect-2) Once the connection between Oracle and Azure is setup, use this module to setup the connection to your Azure VNET and OCI VCN.
 
-> **NOTE**: Currently, the inter-connect is available available in the Azure's **EAST US** region and OCI's **Ashburn** region. Additional regions will be added in the future.
+> **NOTE**: Currently, the inter-connect is available available in the Azure's **East US** region and OCI's **Ashburn** region. Additional regions will be added in the future.
 
 In the near future, this repository will contain modules for deploying the infrastructure (reference architecture) for the following Oracle applications:
 
 - [**Oracle E-Business Suite**](https://www.oracle.com/applications/ebusiness/)
 - [**JD Edwards EnterpriseOne**](https://www.oracle.com/applications/jd-edwards-enterpriseone/)
 - [**Oracle Retail Merchandising System**](https://www.oracle.com/industries/retail/products/merchandise-management/merchandising-system/)
-- [**Peoplesoft**](https://www.oracle.com/applications/PEOPLESOFT/)
+- [**PeopleSoft**](https://www.oracle.com/applications/PEOPLESOFT/)
 
-> **NOTE:** This terraform scripts for Oracle applications ONLY setup the infrastructure required to host the application. The scripts DO NOT install the application itself.
+> **NOTE:** This terraform scripts for Oracle applications provision only the infrastructure required to host the application. The scripts DO NOT install the application itself.
 
 ## Repository Structure
 
@@ -31,7 +31,7 @@ In the near future, this repository will contain modules for deploying the infra
 - JDEdwards => Scripts to provision the infrastructure for Oracle JDEdwards application
 - EBusinessSuite => Scripts to provision the infrastructure for Oracle E-Business Suite
 - Retail => Scripts to provision the infrastructure for Oracle Retail Merchandising Suite
-- Peoplesoft => Scripts to provision the infrastructure for Oracle Peoplesoft application
+- PeopleSoft => Scripts to provision the infrastructure for Oracle Peoplesoft application
 
 ## Getting Started
 
