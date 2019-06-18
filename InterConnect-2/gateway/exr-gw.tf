@@ -19,7 +19,7 @@ resource "azurerm_virtual_network_gateway" "vnet-gw" {
 
   ip_configuration {
     name                          = "${local.name}-pipconfig"
-    public_ip_address_id          = "${azurerm_public_ip.ergw-pip.id}"
+    public_ip_address_id          = "${element(azurerm_public_ip.ergw-pip.*.id, 0)}"
     subnet_id                     = "${var.gateway_subnet_id}"
   }
 

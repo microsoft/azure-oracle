@@ -69,6 +69,8 @@ Running through the above instructions will create an ExpressRoute circuit with 
 
 At the end of provisioning, The ExpressRoute service key will be output, which will be required to setup the Oracle FastConnect circuit.
 
+> **Note:** You will be billed for ExpressRoute charges as soon as the circuit is provisioned (even if the **Provider Status** is **Not Provisioned**).
+
 ### Setting up the Oracle FastConnect Circuit & Dynamic Routing Gateway
 
 The Oracle FastConnect & Dynamic Routing Gateway setup hasn't been automated yet. Please refer to the [Oracle documentation](https://docs.cloud.oracle.com/iaas/Content/Network/Concepts/azure.htm) for more details on setting up Oracle FastConnect.
