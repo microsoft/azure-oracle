@@ -4,5 +4,5 @@ provider "azurerm" {
     subscription_id = "${var.subscription_id}"
     client_id       = "${var.client_id}"
     client_secret   = "${var.client_secret}"
-    partner_id      = "aa90d588-67de-5711-b249-5cc064d35376"
+    partner_id      = ""
 }
