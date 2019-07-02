@@ -17,7 +17,7 @@ In the near future, this repository will contain modules for deploying the infra
 
 - [**Oracle E-Business Suite**](https://www.oracle.com/applications/ebusiness/)
 - [**JD Edwards EnterpriseOne**](https://www.oracle.com/applications/jd-edwards-enterpriseone/)
-- [**Oracle Retail Merchandising System**](https://www.oracle.com/industries/retail/products/merchandise-management/merchandising-system/)
+- [**Oracle Retail Merchandising Suite**](https://www.oracle.com/industries/retail/retail-merchandising.html)
 - [**PeopleSoft**](https://www.oracle.com/applications/PEOPLESOFT/)
 
 > **NOTE:** This terraform scripts for Oracle applications provision only the infrastructure required to host the application. The scripts DO NOT install the application itself.
