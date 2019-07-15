@@ -10,7 +10,23 @@ resource "azurerm_subnet" "subnet" {
   count = "${length(var.subnet_cidr_map)}"
 }
 
-#TODO: TF 1.12 -- will allow indexed depends_on, so will be able to do the correct thing of having associate depend on iteration of subnet
+###################################################
+##  Create NSG
+###################################################
+resource "azurerm_network_security_group" "nsg" {
+  name                = "${var.vnet_name}-nsg-${element(keys(var.tier_names), count.index)}"
+  location            = "${var.location}"
+  resource_group_name = "${var.resource_group_name}"
+  tags                = "${var.tags}"
+  count               = "${length(var.tier_names)}"
+}
+
+
+###################################################
+##  Security Rules for NSGs
+###################################################
+
+
 
 ###################################################
 ##  Associate the NSG with the Subnet from above.

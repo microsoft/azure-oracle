@@ -87,6 +87,10 @@ locals {
     ## VMs in these subnets will need Availability sets.
     ##########################################
   #  needAVSets = [ "presentation", "application" ]
+
+  vnet_name = "${var.vnet_cidr == "0" ? 
+    element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
+    element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
 }
 
 ############################################################################################
@@ -98,15 +102,61 @@ resource "azurerm_resource_group" "rg" {
 }
 
 ############################################################################################
-# Create the virtual network
-module "create_vnet" {
-    source = "./modules/network/vnet"
-
+# Check if a VNET exists, else create the virtual network
+data "azurerm_virtual_network" "primary_vnet" {
+    name = "${var.vnet_name}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.location}"
-    tags                = "${var.tags}"    
-    vnet_cidr           = "${var.vnet_cidr}"
-    vnet_name           = "${var.vnet_name}"
+    count = "${var.vnet_cidr == "0" ? 1 : 0}"
+}
+
+resource "azurerm_virtual_network" "primary_vnet" {
+  name                = "${var.vnet_name}"
+  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"
+  address_space       = ["${var.vnet_cidr}"]
+  count = "${var.vnet_cidr != "0" ? 1 : 0}"
+}
+
+############################################################################################
+# Create each of the subnets
+############################################################################################
+resource "azurerm_subnet" "subnets" {
+    name = "${element(key(local.subnetPrefixes), count.index)}"
+    resource_group_name  = "${azurerm_resource_group.rg}"  
+    virtual_network_name = "${local.vnet_name}"
+    address_prefix       = "${element(values(local.subnetPrefixes),count.index)}"
+    count                = "${length(local.subnetPrefixes)}"
+}
+
+/*
+module "create_subnets" {
+    source = "./modules/network/subnets"
+
+    subnet_cidr_map = "${local.subnetPrefixes}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${module.create_vnet.vnet_name}"
+    nsg_ids = "${zipmap(
+        list("bastion", "database", "application"),
+        list(module.create_networkSGsForBastion.nsg_id,
+             module.create_networkSGsForDatabase.nsg_id,
+             module.create_networkSGsForApplication.nsg_id))}"
+}
+*/
+
+module "create_subnet_and_nsgs" {
+    source = "./modules/network/subnets"
+
+    subnet_cidr_map = "${local.subnetPrefixes}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${local.vnet_name}"
+    tier_names = "${list("bastion", "database", "application")}"
+    security_rules_inbound = "${zipmap(list("bastion","database", "application"), list(local.bastion_sr_inbound, local.database_sr_inbound, local.application_sr_inbound))}"
+    security_rules_outbound = "${zipmap(list("bastion","database", "application"), list(local.bastion_sr_outbound, local.database_sr_outbound, local.application_sr_outbound))}"
+
+      //START HERE                  
+
+
 }
 
 ###############################################################
@@ -147,21 +197,6 @@ module "create_networkSGsForDatabase" {
     subnet_id           = "${module.create_subnets.subnet_names["database"]}"
     inboundOverrides    = "${local.database_sr_inbound}"
     outboundOverrides   = "${local.database_sr_outbound}"
-}
-
-############################################################################################
-# Create each of the subnets
-module "create_subnets" {
-    source = "./modules/network/subnets"
-
-    subnet_cidr_map = "${local.subnetPrefixes}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${module.create_vnet.vnet_name}"
-    nsg_ids = "${zipmap(
-        list("bastion", "database", "application"),
-        list(module.create_networkSGsForBastion.nsg_id,
-             module.create_networkSGsForDatabase.nsg_id,
-             module.create_networkSGsForApplication.nsg_id))}"
 }
 
 

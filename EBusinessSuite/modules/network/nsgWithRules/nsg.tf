@@ -27,7 +27,6 @@ locals {
         destination_address_prefix = "*"
         resource_group_name = "${var.resource_group_name}"
         network_security_group_name = "${var.nsg_name}"
- #       depends_on = [ "azurerm_network_security_group.nsg.${var.nsg_name}" ]
     }
     baseOutbound = {
         name = ""
@@ -35,13 +34,12 @@ locals {
         direction = "Outbound"
         access = "Allow"
         protocol = "Tcp"
-        source_port_ranges =  "*"  # unintuitively, this has to be a string rather than a list.
+        source_port_ranges =  "*"
         destination_port_ranges = "*"
         source_address_prefix = "*"        
         destination_address_prefix = "*"
         resource_group_name = "${var.resource_group_name}"
-        network_security_group_name = "${var.nsg_name}"    
-  #      depends_on = [ "azurerm_network_security_group.nsg.${var.nsg_name}" ]            
+        network_security_group_name = "${var.nsg_name}"             
     }
 }
 
