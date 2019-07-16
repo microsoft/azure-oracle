@@ -1,6 +1,6 @@
 # Azure-OCI Cloud Inter-Connect
 
-Microsoft and Oracle’s cloud interoperability enables you to migrate and run mission-critical enterprise workloads across Microsoft Azure and Oracle Cloud Infrastructure. Run your Oracle database and enterprise applications—including JD Edwards EnterpriseOne, E-Business Suite, PeopleSoft, Oracle Retail, and WebLogic Server—on Oracle Linux, Windows Server, and other supported operating systems in Azure.
+[Microsoft and Oracle’s cloud interoperability](https://news.microsoft.com/2019/06/05/microsoft-and-oracle-to-interconnect-microsoft-azure-and-oracle-cloud/) enables you to migrate and run mission-critical enterprise workloads across Microsoft Azure and Oracle Cloud Infrastructure. Run your Oracle database and enterprise applications—including JD Edwards EnterpriseOne, E-Business Suite, PeopleSoft, Oracle Retail, and WebLogic Server—on Oracle Linux, Windows Server, and other supported operating systems in Azure.
 
 ## Introduction
 
@@ -11,30 +11,39 @@ The repository contains modules for deploying the inter-connect between Microsof
 - [**InterConnect-1:**](/InterConnect-1) This is the first step to establishing inter-connectivity.
 - [**InterConnect-2:**](/InterConnect-2) Once the connection between Oracle and Azure is setup, use this module to setup the connection to your Azure VNET and OCI VCN.
 
+> **NOTE**: Currently, the inter-connect is available available in the Azure's **East US** region and OCI's **Ashburn** region. Additional regions will be added in the future.
+
 In the near future, this repository will contain modules for deploying the infrastructure (reference architecture) for the following Oracle applications:
 
-- [**Oracle E-Business Suite**](/EBusinessSuite)
-- [**JD Edwards**](/JDEdwards)
-- [**Oracle Retail**](/Retail)
-- [**Peoplesoft**](/Peoplesoft)
+- [**Oracle E-Business Suite**](https://www.oracle.com/applications/ebusiness/)
+- [**JD Edwards EnterpriseOne**](https://www.oracle.com/applications/jd-edwards-enterpriseone/)
+- [**Oracle Retail Merchandising Suite**](https://www.oracle.com/industries/retail/retail-merchandising.html)
+- [**PeopleSoft**](https://www.oracle.com/applications/PEOPLESOFT/)
 
-> **NOTE:** This terraform scripts for Oracle applications ONLY setup the infrastructure required to host the application. The scripts DO NOT install the application itself.
+> **NOTE:** This terraform scripts for Oracle applications provision only the infrastructure required to host the application. The scripts DO NOT install the application itself.
 
 ## Repository Structure
 
-- InterConnect-1 => Contains the first set of terraform scripts to provision the Azure-OCI Cross-Cloud Interconnect
-- InterConnect-2 => Contains modules for the second step to provisioning the inter-connect.
+- [InterConnect-1](/InterConnect-1) => Contains the first set of terraform scripts to provision the Azure-OCI Cross-Cloud Interconnect
+- [InterConnect-2](/InterConnect-2) => Contains modules for the second step to provisioning the inter-connect.
 
 **Future**:
-- JDEdwards => Contains scripts to provision the infrastructure for Oracle JDEdwards application
-- EBusinessSuite => Contains scripts to provision the infrastructure for Oracle E-Business Suite
-- Retail => Contains scripts to provision the infrastructure for Oracle Retail Suite
-- Peoplesoft => Contains scripts to provision the infrastructure for Oracle Peoplesoft application
+
+- JDEdwards => Scripts to provision the infrastructure for Oracle JDEdwards application
+- EBusinessSuite => Scripts to provision the infrastructure for Oracle E-Business Suite
+- Retail => Scripts to provision the infrastructure for Oracle Retail Merchandising Suite
+- PeopleSoft => Scripts to provision the infrastructure for Oracle Peoplesoft application
 
 ## Getting Started
 
 To deploy Oracle Applications on the Cross-Cloud inter-connect, you will first need the inter-connect provisioned. Follow the steps listed in the README for [InterConnect-1](/InterConnect-1) followed by [InterConnect-2](/InterConnect-2) to deploy the inter-connect. Once the inter-connect has been deployed, you can deploy an application on that inter-connect using the application specific terraform modules here. Follow the instructions and guidance detailed in the README file for each application.
 > **Note**: For Oracle applications, only infrastructure deployment can be automated using these terraform scripts. To install the specific application on the deployed infrastructure, please refer to the installation guide for that application.
+
+## Learn More
+
+- [Oracle Workloads on Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/oracle-overview)
+- [Microsoft and Oracle's Partnership Announcement](https://news.microsoft.com/2019/06/05/microsoft-and-oracle-to-interconnect-microsoft-azure-and-oracle-cloud/)
+- [Overview of Azure-OCI Inter-connect](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/oracle/oracle-oci-overview)
 
 ## Contributing
 
@@ -50,9 +59,22 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Asking Questions & Reporting Issues
+## Asking Questions, Reporting Bugs & Requesting Features
 
 Please create an issue to ask a question or to report a bug/feature request.
+
+## Reporting Security Issues
+
+Security issues and bugs should be reported privately, via email, to the Microsoft Security
+Response Center (MSRC) at [secure@microsoft.com](mailto:secure@microsoft.com). You should
+receive a response within 24 hours. If for some reason you do not, please follow up via
+email to ensure we received your original message. Further information, including the
+[MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155) key, can be found in
+the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
+
+## Disclaimer
+
+Templates provided in this repository use partner GUID to count the number of times thise template has been deployed. There is no personally identifiable information collected during this process. If you choose to be excluded from such counting, remove the partner_id parameter from terraform configuration files such as [provider.tf](https://github.com/microsoft/azure-oracle/blob/417e7e2cb02e87663e2f8fab1dc8d47618db6468/InterConnect-1/common.provider.tf#L7) before deploying the template(s).
 
 ## License
 
