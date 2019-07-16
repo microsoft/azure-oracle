@@ -24,6 +24,16 @@ variable "tags" {
   }
 }
 
+variable "create_public_ip" {
+  default = false
+}
+variable "create_av_set" {
+  default = true
+}
+variable "create_data_disk" {
+  default = true
+}
+
 # Host Name Prefixes
 variable "compute_hostname_prefix" {
  description = "Application server host resource prefix"

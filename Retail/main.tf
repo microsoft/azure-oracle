@@ -69,14 +69,13 @@ resource "azurerm_resource_group" "rg" {
 
 ############################################################################################
 # Create the virtual network
-module "create_vnet" {
-    source = "./modules/network/vnet"
 
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    location            = "${var.location}"
-    tags                = "${var.tags}"    
-    vnet_cidr           = "${var.vnet_cidr}"
-    vnet_name           = "${var.vnet_name}"
+resource "azurerm_virtual_network" "vnet" {
+  name                = "${var.vnet_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${var.location}"
+  address_space       = ["${var.vnet_cidr}"] 
+  tags                = "${var.tags}"
 }
 
 ###############################################################
@@ -86,7 +85,7 @@ module "create_vnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${module.create_vnet.vnet_name}-nsg-bastionftp"
+    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-bastionftp"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
@@ -98,7 +97,7 @@ module "create_networkSGsForBastion" {
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "${module.create_vnet.vnet_name}-nsg-application"    
+    nsg_name = "${azurerm_virtual_network.vnet.name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
@@ -131,7 +130,7 @@ module "create_subnets" {
 
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${module.create_vnet.vnet_name}"
+    vnet_name = "${azurerm_virtual_network.vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 }
@@ -155,54 +154,64 @@ module "create_boot_sa" {
 # Create bastion host
 
 module "create_bastion" {
-  source  = "./modules/bastion"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_bastion = "${var.compute_hostname_prefix_bastion}"
-  bastion_instance_count    = "${var.bastion_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_bastion}"
+  compute_instance_count    = "${var.bastion_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  bastion_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  bastion_ssh_public_key    = "${var.bastion_ssh_public_key}"
+  compute_ssh_public_key    = "${var.bastion_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion-ftp"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = false  
+  create_public_ip          = true
+  create_data_disk          = false
+  assign_bepool             = false
+ 
+  
 }
 
 ###################################################
 # Create S-FTP Server
 
 module "create_ftp" {
-  source  = "./modules/bastion"
+  source  = "./modules/compute"
 
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_bastion = "${var.compute_hostname_prefix_ftp}"
-  bastion_instance_count    = "${var.ftp_instance_count}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_ftp}"
+  compute_instance_count    = "${var.ftp_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
   os_offer                  = "${var.os_offer}"
   os_sku                    = "${var.os_sku}"
   os_version                = "${var.os_version}"
   storage_account_type      = "${var.storage_account_type}"
-  bastion_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
+  compute_boot_volume_size_in_gb    = "${var.bastion_boot_volume_size_in_gb}"
   admin_username            = "${var.admin_username}"
   admin_password            = "${var.admin_password}"
   custom_data               = "${var.custom_data}"
-  bastion_ssh_public_key    = "${var.ftp_ssh_public_key}"
+  compute_ssh_public_key    = "${var.ftp_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion-ftp"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = false 
+  create_public_ip          = false
+  create_data_disk          = false
+  assign_bepool             = false
 }
 
 
@@ -215,7 +224,7 @@ module "create_app" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_app}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_app}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -234,6 +243,11 @@ module "create_app" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_app.backendpool_id}"
+  create_av_set             = true
+  create_public_ip          = false
+  create_data_disk          = true
+  assign_bepool             = true
+
  
 }
 ###################################################
@@ -244,7 +258,7 @@ module "create_idm" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_idm}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_idm}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -263,7 +277,10 @@ module "create_idm" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_idm.backendpool_id}"
-  # appgwpool_id              = "${module.create_app_gateway.backendpool_address_pool_2_id}"
+  create_av_set             = true
+  create_public_ip          = false
+  create_data_disk          = true
+  assign_bepool             = true
 
  
 }
@@ -276,7 +293,7 @@ module "create_integ" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_integ}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_integ}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -295,6 +312,10 @@ module "create_integ" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_integ.backendpool_id}"
+  create_av_set             = true
+  create_public_ip          = false
+  create_data_disk          = true
+  assign_bepool             = true
  
 }
 
@@ -307,7 +328,7 @@ module "create_RIA" {
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   location                  = "${var.location}"
   tags                      = "${var.tags}"
-  compute_hostname_prefix_app = "${var.compute_hostname_prefix_RIA}"
+  compute_hostname_prefix   = "${var.compute_hostname_prefix_RIA}"
   compute_instance_count    = "${var.compute_instance_count}"
   vm_size                   = "${var.vm_size}"
   os_publisher              = "${var.os_publisher}"   
@@ -326,34 +347,64 @@ module "create_RIA" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   backendpool_id            = "${module.create_BackendPools_ria.backendpool_id}"
+  create_av_set             = true
+  create_public_ip          = false
+  create_data_disk          = true
+  assign_bepool             = true
  
 }
 
 ###################################################
 # Create Internal Load Balancers
-module "lb_App" {
-  source = "./modules/load_balancer_internal"
 
+
+resource "azurerm_lb" "inlb" {
+  name                = "${var.prefix}-lb"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
-  tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_app}"
-  lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-}
+  tags                = "${var.tags}"
+  sku                 = "${var.lb_sku}"
 
+  frontend_ip_configuration {
+    name                          = "${var.frontend_name}-app"
+    private_ip_address_allocation = "dynamic"
+    subnet_id                 = "${module.create_subnets.subnet_ids["application"]}"
+
+  }
+
+    frontend_ip_configuration {
+    name                          = "${var.frontend_name}-idm"
+    private_ip_address_allocation = "dynamic"
+    subnet_id                 = "${module.create_subnets.subnet_ids["application"]}"
+
+  }
+
+    frontend_ip_configuration {
+    name                          = "${var.frontend_name}-integ"
+    private_ip_address_allocation = "dynamic"
+    subnet_id                 = "${module.create_subnets.subnet_ids["application"]}"
+
+  }
+
+    frontend_ip_configuration {
+    name                          = "${var.frontend_name}-ria"
+    private_ip_address_allocation = "dynamic"
+    subnet_id                 = "${module.create_subnets.subnet_ids["application"]}"
+
+  }
+}
 
 ############################################################
 # Create Internal LB Backend Pools with Rules
 
 module "create_BackendPools_app" {
-  source = "./modules/load_balancer_internal/poolsWithrules"
+  source = "./modules/network/lbPoolsWithrules"
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"  
     frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"
-    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    loadbalancer_id     = "${azurerm_lb.inlb.id}" 
     frontend_name_app   = "${var.frontend_name}-app"
     backendpool_name    = "BEpool_app"
     lb_port             = {
@@ -362,13 +413,13 @@ module "create_BackendPools_app" {
 }
 
 module "create_BackendPools_ria" {
-  source = "./modules/load_balancer_internal/poolsWithrules"
+  source = "./modules/network/lbPoolsWithrules"
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}" 
     frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
-    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    loadbalancer_id     = "${azurerm_lb.inlb.id}" 
     frontend_name_app   = "${var.frontend_name}-ria"
     backendpool_name    = "BEpool_ria"
     lb_port             = {
@@ -377,13 +428,13 @@ module "create_BackendPools_ria" {
 }
 
 module "create_BackendPools_idm" {
-  source = "./modules/load_balancer_internal/poolsWithrules"
+  source = "./modules/network/lbPoolsWithrules"
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}" 
     frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
-    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    loadbalancer_id     = "${azurerm_lb.inlb.id}" 
     frontend_name_app   = "${var.frontend_name}-idm"
     backendpool_name    = "BEpool_idm"
     lb_port             = {
@@ -394,19 +445,20 @@ module "create_BackendPools_idm" {
 }
 
 module "create_BackendPools_integ" {
-  source = "./modules/load_balancer_internal/poolsWithrules"
+  source = "./modules/network/lbPoolsWithrules"
 
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}" 
     frontend_subnet_id  = "${module.create_subnets.subnet_ids["application"]}"   
-    loadbalancer_id     = "${module.lb_App.loadbalancer_id}"
+    loadbalancer_id     = "${azurerm_lb.inlb.id}" 
     frontend_name_app   = "${var.frontend_name}-integ"
     backendpool_name    = "BEpool_integ"
     lb_port             = {
         http = ["80", "Tcp", "80"]
   }
 }
+
 
 ############################################################
 # Create Application Gateway
@@ -418,8 +470,8 @@ module "create_app_gateway" {
   location            = "${var.location}"
   prefix              = "appgw"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["AppGWSubnet"]}"
-  vnet_name           = "${module.create_vnet.vnet_name}"
-  lb_frontend_ips        = "${module.lb_App.lb_frontend_ips}"
+  vnet_name           = "${azurerm_virtual_network.vnet.name}"
+  lb_frontend_ips        = "${azurerm_lb.inlb.private_ip_addresses}"
 
  
 }

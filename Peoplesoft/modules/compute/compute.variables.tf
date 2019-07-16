@@ -60,3 +60,25 @@ variable "boot_diag_SA_endpoint" {
   type = "string"
 
 }
+
+variable "create_av_set" {
+
+}
+variable "create_data_disk" {
+
+}
+variable "assign_bepool" {
+
+}
+variable "create_public_ip" {
+
+}
+variable "ip_sku" {
+    default = "Standard"
+}
+variable "public_ip_address_allocation" {
+   default = "Static"
+}
+variable "backendpool_id" {
+  default = "0"
+}

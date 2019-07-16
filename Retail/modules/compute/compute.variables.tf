@@ -10,7 +10,7 @@ variable "tags" {
     application = "Oracle Peoplesoft"
   }
 }
-variable "compute_hostname_prefix_app" {
+variable "compute_hostname_prefix" {
   description = "Prefix for naming of each Application-server specific resource"
 }
 variable "compute_instance_count" {
@@ -35,8 +35,10 @@ variable "compute_boot_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
 }
 variable "data_disk_size_gb" {
+    default = 128
 }
 variable "data_sa_type" {
+    default = "Standard_LRS"
 }
 variable "admin_username" {
 }
@@ -61,8 +63,23 @@ variable "boot_diag_SA_endpoint" {
 
 }
 variable "backendpool_id" {
-  
+  default = "0"
 }
+variable "create_public_ip" {
 
+}
+variable "public_ip_address_allocation" {
+   default = "Static"
+}
+variable "ip_sku" {
+    default = "Standard"
+}
+variable "create_av_set" {
 
+}
+variable "create_data_disk" {
 
+}
+variable "assign_bepool" {
+
+}
