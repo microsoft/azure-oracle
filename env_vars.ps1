@@ -13,9 +13,6 @@ $env:TF_VAR_environment = "test"
 ### Region
 $env:TF_VAR_deployment_location="East US"
 
-### Resource Group name
-$env:TF_VAR_resource_group_name="rg-name"
-
 ### Username/Password for Bastion VM
 $env:TF_VAR_vm_admin_username = "username"
 $env:TF_VAR_vm_admin_password = "password"
