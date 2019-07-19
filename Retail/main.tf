@@ -1,4 +1,4 @@
-# ebs/main.tf
+# retail/main.tf
 
 locals {
     subnet_bits = 8   # want 256 entries per subnet.
@@ -7,11 +7,8 @@ locals {
     subnetPrefixes = {
         application     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 1)}"
         bastion-ftp     = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 2)}"
-        # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
         AppGWSubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 9)}"
-        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 10)}"
     }
-
 
     #####################
     ## NSGs
@@ -280,9 +277,7 @@ module "create_idm" {
   create_av_set             = true
   create_public_ip          = false
   create_data_disk          = true
-  assign_bepool             = true
-
- 
+  assign_bepool             = true 
 }
 
 ###################################################
@@ -316,8 +311,7 @@ module "create_integ" {
   create_public_ip          = false
   create_data_disk          = true
   assign_bepool             = true
- 
-}
+ }
 
 
 ###################################################

@@ -1,4 +1,4 @@
-# ebs/main.tf
+# Peoplesoft/main.tf
 
 locals {
     subnet_bits = 8   # want 256 entries per subnet.
@@ -10,17 +10,15 @@ locals {
         elasticsearch   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
         client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
         bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
- # Note that ExpressRoute setup needs exactly "GatewaySubnet" as the gateway subnet name.
-        GatewaySubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 10)}"
     }
 
     #####################
     ## NSGs
+    #Note that only one of prefix or prefixes is allowed and keywords can't be in the list.
 
     bastion_sr_inbound = [
         {   # SSH from outside
             source_port_ranges = "*" 
-#TODO: Note that only one of prefix or prefixes is allowed and keywords can't be in the list.
             source_address_prefix = "Internet"
             destination_port_ranges =  "22" 
         },{ # SSH from within any of the servers
@@ -61,10 +59,12 @@ locals {
     ]
 
     application_sr_outbound = [
-        {
+        {  # SSH to any of the servers
+            source_port_ranges =  "*" 
+            source_address_prefix = "VirtualNetwork"
+            destination_port_ranges =  "22" 
+        
         }
-        #TODO:
-        # outbound to file service
     ]
     webserver_sr_inbound = [
         {
@@ -186,7 +186,7 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.vnet_name}"
-  resource_group_name = "${var.resource_group_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
   address_space       = ["${var.vnet_cidr}"]  
   tags                = "${var.tags}"

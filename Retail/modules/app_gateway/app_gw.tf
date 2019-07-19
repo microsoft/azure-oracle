@@ -12,7 +12,8 @@ resource "azurerm_public_ip" "app_gw" {
   name                = "retail_agw-pip"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku = "Standard"
 }
 
 resource "azurerm_application_gateway" "app_gw" {
@@ -21,8 +22,8 @@ resource "azurerm_application_gateway" "app_gw" {
   resource_group_name          = "${var.resource_group_name}"
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
