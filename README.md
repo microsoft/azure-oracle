@@ -74,7 +74,7 @@ the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
 
 ## Disclaimer
 
-Templates provided in this repository use partner GUID to count the number of times thise template has been deployed. There is no personally identifiable information collected during this process. If you choose to be excluded from such counting, remove the partner_id parameter from terraform configuration files such as [provider.tf](https://github.com/microsoft/azure-oracle/blob/417e7e2cb02e87663e2f8fab1dc8d47618db6468/InterConnect-1/common.provider.tf#L7) before deploying the template(s).
+Templates provided in this repository use partner GUID to count the number of times these templates have been deployed. There is no personally identifiable information collected during this process. If you choose to be excluded from such counting, remove the partner_id parameter from terraform configuration files such as [provider.tf](https://github.com/microsoft/azure-oracle/blob/417e7e2cb02e87663e2f8fab1dc8d47618db6468/InterConnect-1/common.provider.tf#L7) before deploying the template(s).
 
 ## License
 

@@ -7,11 +7,6 @@ $env:TF_VAR_client_id="client id"
 
 $env:TF_VAR_client_secret="client secret"
 
-### Environment
-$env:TF_VAR_environment = "test"
-
-### Region
-$env:TF_VAR_deployment_location="East US"
 
 ### Username/Password for Bastion VM
 $env:TF_VAR_vm_admin_username = "username"

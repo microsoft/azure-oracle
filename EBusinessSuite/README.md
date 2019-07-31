@@ -1,3 +1,43 @@
+# E-Business Suite Application
+
+## Introduction
+
+This terraform template allows you to setup the infrastructure of the E-Business Suite application. Once the application setup is complete, you may install the application using the guide provided by Oracle [#TODO: Need link to installation guide]
+
+## Instructions
+
+### Setup the Terraform scripts
+
+1. If you haven't already done so in this terminal session, Open the file [env_vars](./../env_vars) (or [env_vars.ps1](./../env_vars.ps1) if you do not have the Windows Sub-system for Linux (WSL) or GitBash installed). Add the details regarding your Azure account. 
+
+1. In order to execute terraform scripts in Azure, you will need to use a Azure AD Service principal and grant it the necessary permissions to create and delete resources in your Azure subscription. You can find more details on achieving this can be found here: [Terraform Azure Provider: Authenticating using a Service Principal with a Client Secret](https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html). Alternate options to authenticating with Terraform can also be found in that link. You may need to modify the **provider.tf** file in order to use these alternate ways of authentication.
+
+1. Save the file and close it.
+
+1. Execute the following command from your shell and naviagate to the root folder and execute following command:
+    - (For Linux or WSL/GitBash) `$ source env-vars`
+    - (For Older versions of Windows) `> env-vars.ps1`
+
+1. Open the [ebs_input.json](./input/ebs_input.json) file and fill in the information as required. Details regarding what information is expected can be found [below](#terraformvariables). Save and close the file.
+
+1. From the terminal, navigate to the `EBusinessSuite` folder (if you haven't already) and run a terraform init command:
+    
+    `$ terraform init`
+
+1. You should see the following output:
+
+    {#TODO: Need Image}
+
+1. Next, run the `terraform apply` command as follows:
+
+    `$ terraform apply -var-file ./input/ebs_input.json`
+
+1. This will create the required Azure resources. You will see the output as follows.
+
+    {#TODO: Need Image}
+
+### Previous Notes (Please ignore)
+
 @REM Use these variables for a quick run of EBS main.tf
 @REM ============================================================
 @REM  You need to authentication using the CLI before 

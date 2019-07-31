@@ -14,6 +14,10 @@ variable "basename_prefix" {
     type = "string"
 }
 
+variable "createRules" {
+    description = "Whether to ignore the request to create the security rules for the specific NSG or to create them"
+}
+
 # Note: security rules do no allow resource tags.
 
 

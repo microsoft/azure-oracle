@@ -10,16 +10,14 @@ variable "tags" {
     application = "Oracle EBusinessSuite"
   }
 }
-variable "compute_hostname_prefix_app" {
-  description = "Prefix for naming of each Application-server specific resource"
+variable "compute_hostname_prefix" {
+  description = "Prefix for naming of each server specific resource"
 }
-variable "compute_instance_count" {
+variable "instance_count" {
   description = "Application instance count"
 }
 
-variable "backendpool_id" {
-  
-}
+
 
 variable "vm_size" {
 }
@@ -34,8 +32,12 @@ variable "os_version" {
 }
 variable "storage_account_type" {
 }
-variable "compute_boot_volume_size_in_gb" {
+variable "boot_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
+}
+
+variable "attach_data_disks" {
+  description = "Whether a data disk needs to attached to the VM"
 }
 variable "data_disk_size_gb" {
 }
@@ -43,11 +45,11 @@ variable "data_sa_type" {
 }
 variable "admin_username" {
 }
-variable "admin_password" {
-}
+//variable "admin_password" {
+//}
 variable "custom_data" {
 }
-variable "compute_ssh_public_key" {
+variable "ssh_public_key" {
   description = "Path to the public key to be used for ssh access to the VM."
 }
 variable "enable_accelerated_networking" {
@@ -58,6 +60,19 @@ variable "vnet_subnet_id" {
 variable "boot_diag_SA_endpoint" {
   description = "Blob endpoint for storage account to use for VM Boot diagnostics"
   type = "string"
+}
+
+variable "assign_public_ip" {
+  description = "Whether or not the VMs need to have a public IP"
+}
+
+variable "public_ip_address_allocation" {
+  description = "Defines how a private IP address is assigned. Options are Static or Dynamic."
+}
+
+variable "public_ip_sku" {
+  description = "The SKU for the public IP."
+  default = "Standard"
 }
 
 #TODO
