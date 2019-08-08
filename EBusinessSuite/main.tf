@@ -177,7 +177,7 @@ module "create_networkSGsForDatabase" {
 
 module "create_networkSGsForIdentity" {
     source = "./modules/network/nsgWithRules"
-
+    
     tier_name           = "identity"
     vnet_name           = "${local.vnet_name}"  
     resource_group_name = "${azurerm_resource_group.rg.name}"
@@ -189,7 +189,6 @@ module "create_networkSGsForIdentity" {
     outboundOverrides   = "${local.identity_sr_outbound}"
     createSubnetAndNSG  = true                              #TODO: Setup Bool variable for identity setup
 }
-
 
 ###################################################
 # Create a Storage account ofr Boot diagnostics 
