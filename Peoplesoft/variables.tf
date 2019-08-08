@@ -212,7 +212,9 @@ variable "oci_subnet_name" {
 variable "db_scan_ip_addresses" {
 
 }
-
+variable "db_name" {
+  
+}
 
 
 
