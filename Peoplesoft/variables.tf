@@ -6,7 +6,7 @@ variable "subscription_id" {
 }
 
 variable "resource_group_name" {
-    default = "jkc-ps-rg4"
+    default = "ps-rg"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -58,7 +58,6 @@ variable "compute_hostname_prefix_es" {
   default = "es"
 }
 
-
 variable "compute_hostname_prefix_ps" {
   description = "Elastic Search server host resource prefix"
   default = "ps"
@@ -101,7 +100,7 @@ variable "toolsclient_instance_count" {
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
 
 variable "vm_size" {
-    default = "Standard_D2_V2"
+    default = "Standard_E16-8s_v3"
 }
 variable "os_publisher" {
     default = "Oracle"
@@ -149,10 +148,10 @@ variable "toolsclient_boot_volume_size_in_gb" {
   default = 128
 }
 variable "data_disk_size_gb" {
-    default = 128
+    default = 256
 }
 variable "data_sa_type" {
-    default = "Standard_LRS"
+    default = "StandardSSD_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"
@@ -203,7 +202,16 @@ variable "vnet_cidr" {
     default = "10.2.0.0/16"
 }
 
+variable "oci_vcn_name" {
+}
 
+variable "oci_subnet_name" {
+
+}
+
+variable "db_scan_ip_addresses" {
+
+}
 
 
 

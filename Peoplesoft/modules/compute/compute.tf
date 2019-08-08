@@ -114,6 +114,18 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_data_disks_attachmen
   lun                = "${count.index}"
   caching            = "None"
   count = "${var.create_data_disk}"
+
+
+ provisioner "remote-exec" {
+ inline = [
+ "sudo su", # TODO: Upload private key to the machine too. Figure out how. 
+ "yum install -y oracle-ebs-server-R12-preinstall.x86_64", # This will be replaced by cloud-init for Oracle Linux 7.7+ 
+ # "echo 'type=83' | sfdisk /dev/sdc", #sfdisk alternative to fdisk
+ "echo n\np\n1\n\n\np\nw | fdisk /dev/sdc", # n=> New parition, p=> primary partition, 1 => default partition number 1, "" => default first and last sector, w => write to partition table #TODO: Check if \n works
+ "mkfs -t ext4 /dec/sdc1",
+ "chown -R ${var.admin_username} /u01"
+ ]
+ } 
 }
 
 resource "azurerm_availability_set" "compute" {
