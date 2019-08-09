@@ -82,3 +82,6 @@ variable "public_ip_address_allocation" {
 variable "backendpool_id" {
   default = "0"
 }
+variable "create_vm" {
+  default = "0"
+}

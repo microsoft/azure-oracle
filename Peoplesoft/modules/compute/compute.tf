@@ -110,22 +110,30 @@ resource "azurerm_managed_disk" "vm_data_disks" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "vm_data_disks_attachment" {
   managed_disk_id    = "${element(azurerm_managed_disk.vm_data_disks.*.id, count.index)}"
-  virtual_machine_id = "${element(azurerm_virtual_machine.compute.*.id, count.index)}"
+  # virtual_machine_id = "${element(azurerm_virtual_machine.compute.*.id, count.index)}"
+  virtual_machine_id = "${element(concat(azurerm_virtual_machine.compute.*.id, azurerm_virtual_machine.compute_no_avset.*.id), count.index)}"
   lun                = "${count.index}"
   caching            = "None"
   count = "${var.create_data_disk}"
 
-
- provisioner "remote-exec" {
- inline = [
- "sudo su", # TODO: Upload private key to the machine too. Figure out how. 
- "yum install -y oracle-ebs-server-R12-preinstall.x86_64", # This will be replaced by cloud-init for Oracle Linux 7.7+ 
- # "echo 'type=83' | sfdisk /dev/sdc", #sfdisk alternative to fdisk
- "echo n\np\n1\n\n\np\nw | fdisk /dev/sdc", # n=> New parition, p=> primary partition, 1 => default partition number 1, "" => default first and last sector, w => write to partition table #TODO: Check if \n works
- "mkfs -t ext4 /dec/sdc1",
- "chown -R ${var.admin_username} /u01"
- ]
- } 
+}
+resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
+ count = "${var.compute_instance_count * var.create_data_disk}"
+ # count = "${var.compute_instance_count * var.create_data_disk * var.create_vm}"
+ name = "vm_disk_mount"
+ location = "${var.location}"
+ resource_group_name = "${var.resource_group_name}"
+ virtual_machine_name = "${element(concat(azurerm_virtual_machine.compute.*.name, azurerm_virtual_machine.compute_no_avset.*.name), count.index)}"
+ publisher = "Microsoft.Azure.Extensions"
+ type = "CustomScript"
+ type_handler_version = "2.0"
+ 
+ settings = <<SETTINGS
+ {
+ "commandToExecute": "sh diskmount.sh ${var.admin_username}",
+ "fileUris": ["https://scratchwasb.blob.core.windows.net/publiccontainer/diskmount.sh"]
+ }
+ SETTINGS
 }
 
 resource "azurerm_availability_set" "compute" {

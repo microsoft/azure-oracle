@@ -229,7 +229,7 @@ variable "vnet_name" {
     default = "ps-vnet"
 }
 variable "vnet_cidr" {
-    default =  "0" #"10.2.0.0/16"
+    default =  "10.2.0.0/16"
     description = "Enter a '0' if the VNET already exists. Currently, only VNETs with 1 address space are supported."
 }
 

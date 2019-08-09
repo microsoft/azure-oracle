@@ -17,8 +17,9 @@ locals {
     element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
     element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
 
-    vnet_cidr = "${var.vnet_cidr == "0" ? element(data.azurerm_virtual_network.primary_vnet.address_space, 0) : var.vnet_cidr}"
+    # vnet_cidr = "${var.vnet_cidr == "0" ? element(data.azurerm_virtual_network.primary_vnet.address_space, 0) : var.vnet_cidr}"
 
+    vnet_cidr = "${var.vnet_cidr == "0" ? element(concat(data.azurerm_virtual_network.primary_vnet.*.address_space, list("")), 0) : var.vnet_cidr}"
     #####################
     ## NSGs
     #Note that only one of prefix or prefixes is allowed and keywords can't be in the list.
