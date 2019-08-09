@@ -10,7 +10,14 @@ locals {
         elasticsearch   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 3)}"
         client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
         bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
+        identity        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 6)}"
     }
+
+    vnet_name = "${var.vnet_cidr == "0" ? 
+    element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
+    element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
+
+    vnet_cidr = "${var.vnet_cidr == "0" ? element(data.azurerm_virtual_network.primary_vnet.address_space, 0) : var.vnet_cidr}"
 
     #####################
     ## NSGs
@@ -131,7 +138,7 @@ locals {
         }
     ]
 
-        toolsclient_sr_inbound = [
+    toolsclient_sr_inbound = [
         {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["application"]}"             
@@ -150,22 +157,53 @@ locals {
 
     ]
     
-    database_sr_inbound = [
+    identity_sr_inbound = [
         {
             source_port_ranges =  "*" 
-            source_address_prefix = "${local.subnetPrefixes["application"]}"                 
-            destination_port_ranges =  "1521" 
+            source_address_prefix = "${local.subnetPrefixes["bastion"]}"              
+            destination_port_ranges = "22" 
             destination_address_prefix = "*"             
         },
         {
             source_port_ranges =  "*" 
-            source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.            
-            destination_port_ranges =  "22" 
-            destination_address_prefix = "*"                
+            source_address_prefix = "*"              
+            destination_port_ranges = "80"
+            destination_address_prefix = "*"           
+        },
+        
+        {
+            source_port_ranges =  "*" 
+            source_address_prefix = "*"            
+            destination_port_ranges = "443"
+            destination_address_prefix = "*"              
         }
     ]
-    database_sr_outbound = [
+
+     identity_sr_outbound = [
+        {  # SSH to any of the servers
+            source_port_ranges =  "*" 
+            source_address_prefix = "db_subnet"  #need address range   
+            destination_port_ranges =  "1521" 
+        
+        }
     ]
+
+    # database_sr_inbound = [
+    #     {
+    #         source_port_ranges =  "*" 
+    #         source_address_prefix = "${local.subnetPrefixes["application"]}"                 
+    #         destination_port_ranges =  "1521" 
+    #         destination_address_prefix = "*"             
+    #     },
+    #     {
+    #         source_port_ranges =  "*" 
+    #         source_address_prefix = "${local.subnetPrefixes["bastion"]}"  # input from the Load Balancer only.            
+    #         destination_port_ranges =  "22" 
+    #         destination_address_prefix = "*"                
+    #     }
+    # ]
+    # database_sr_outbound = [
+    # ]
 
     ##########################################
     ## VMs in these subnets will need Availability sets.
@@ -184,13 +222,21 @@ resource "azurerm_resource_group" "rg" {
 ############################################################################################
 # Create the virtual network 
 
-resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.vnet_name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${var.location}"
-  address_space       = ["${var.vnet_cidr}"]  
-  tags                = "${var.tags}"
+data "azurerm_virtual_network" "primary_vnet" {
+    name = "${var.vnet_name}"
+    resource_group_name = "${var.vnet_resource_group_name}"
+    count = "${var.vnet_cidr == "0" ? 1 : 0}"
 }
+
+resource "azurerm_virtual_network" "primary_vnet" {
+  name                = "${var.vnet_name}"
+  resource_group_name = "${var.vnet_resource_group_name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"
+  address_space       = ["${local.vnet_cidr}"]
+  count = "${var.vnet_cidr != "0" ? 1 : 0}"
+}
+
 
 #################################################
 # Setting up a private DNS Zone & A-records for OCI DNS resolution
@@ -217,7 +263,7 @@ resource "azurerm_dns_a_record" "db_a_record" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-bastion"
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-bastion"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
@@ -229,7 +275,7 @@ module "create_networkSGsForBastion" {
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "${azurerm_virtual_network.vnet.name}-nsg-application"    
+    nsg_name = "${azurerm_virtual_network.primary_vnet.name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
@@ -240,37 +286,49 @@ module "create_networkSGsForApplication" {
 module "create_networkSGsForWebserver" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-webserver"    
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-webserver"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
     subnet_id           = "${module.create_subnets.subnet_names["webserver"]}"
-    inboundOverrides    = "${local.database_sr_inbound}"
-    outboundOverrides   = "${local.database_sr_outbound}"
+    inboundOverrides    = "${local.webserver_sr_inbound}"
+    outboundOverrides   = "${local.webserver_sr_outbound}"
 }
 
 module "create_networkSGsForElasticsearch" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-elasticsearch"    
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-elasticsearch"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
     subnet_id           = "${module.create_subnets.subnet_names["elasticsearch"]}"
-    inboundOverrides    = "${local.database_sr_inbound}"
-    outboundOverrides   = "${local.database_sr_outbound}"
+    inboundOverrides    = "${local.elasticsearch_sr_inbound}"
+    outboundOverrides   = "${local.elasticsearch_sr_outbound}"
 }
 
 module "create_networkSGsForClient" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-client"    
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-client"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
     subnet_id           = "${module.create_subnets.subnet_names["client"]}"
-    inboundOverrides    = "${local.database_sr_inbound}"
-    outboundOverrides   = "${local.database_sr_outbound}"
+    inboundOverrides    = "${local.toolsclient_sr_inbound}"
+    outboundOverrides   = "${local.toolsclient_sr_outbound}"
+}
+
+module "create_networkSGsForIdentity" {
+    source = "./modules/network/nsgWithRules"
+
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-identity"    
+    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${var.location}"
+    tags                = "${var.tags}"
+    subnet_id           = "${module.create_subnets.subnet_names["identity"]}"
+    inboundOverrides    = "${local.identity_sr_inbound}"
+    outboundOverrides   = "${local.identity_sr_outbound}"
 }
 
 locals {
@@ -287,8 +345,9 @@ locals {
         webserver = "${module.create_networkSGsForWebserver.nsg_id}"
         elasticsearch = "${module.create_networkSGsForElasticsearch.nsg_id}"
         client = "${module.create_networkSGsForClient.nsg_id}"
+        identity = "${module.create_networkSGsForIdentity.nsg_id}"
     }
-    nsg_ids_len = 5
+    nsg_ids_len = 6
     # Number of entries in nsg_ids. Can't be calculated. See note above.
     
 }
@@ -300,7 +359,7 @@ module "create_subnets" {
 
     subnet_cidr_map = "${local.subnetPrefixes}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${azurerm_virtual_network.vnet.name}"
+    vnet_name = "${azurerm_virtual_network.primary_vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 
@@ -487,6 +546,40 @@ module "create_ps" {
 
  
 }
+###################################################
+# Create Identity VMs
+
+module "create_identity" {
+  source  = "./modules/compute"
+
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  location                  = "${var.location}"
+  tags                      = "${var.tags}"
+  compute_hostname_prefix  = "${var.compute_hostname_prefix_id}"
+  compute_instance_count    = "${var.identity_instance_count}"
+  vm_size                   = "${var.vm_size}"
+  os_publisher              = "${var.os_publisher}"   
+  os_offer                  = "${var.os_offer}"
+  os_sku                    = "${var.os_sku}"
+  os_version                = "${var.os_version}"
+  storage_account_type      = "${var.storage_account_type}"
+  compute_boot_volume_size_in_gb    = "${var.identity_boot_volume_size_in_gb}"
+  admin_username            = "${var.admin_username}"
+  admin_password            = "${var.admin_password}"
+  custom_data               = "${var.custom_data}"
+  compute_ssh_public_key    = "${var.identity_ssh_public_key}"
+  enable_accelerated_networking     = "${var.enable_accelerated_networking}"
+  vnet_subnet_id            = "${module.create_subnets.subnet_ids["identity"]}"
+  boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_av_set             = false
+  create_public_ip          = false
+  create_data_disk          = true
+  assign_bepool             = false
+  data_disk_size_gb         = "${var.data_disk_size_gb}"
+  data_sa_type              = "${var.data_sa_type}"
+}
+
+
 ###################################################
 # Create Tools Client machine
 
