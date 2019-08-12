@@ -9,7 +9,7 @@ This repository contains terraform modules to deploy Azure-OCI Inter-connect as 
 The repository contains modules for deploying the inter-connect between Microsoft Azure & OCI. The deployment is broken into two steps:
 
 - [**InterConnect-1:**](/InterConnect-1) This is the first step to establishing inter-connectivity.
-- [**InterConnect-2:**](/InterConnect-2) Once the connection between Oracle and Azure is setup, use this module to setup the connection to your Azure VNET and OCI VCN.
+- [**InterConnect-2:**](/InterConnect-2) Once the connection between Oracle and Azure is setup, use this module to setup the connection to your Azure VNET and OCI VCN. Run InterConnect-2 module for every Azure VNET that you'd like to connect to your ExpressRoute circuit.
 
 > **NOTE**: Currently, the inter-connect is available available in the Azure's **East US** region and OCI's **Ashburn** region. Additional regions will be added in the future.
 
