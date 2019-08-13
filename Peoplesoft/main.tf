@@ -27,7 +27,7 @@ locals {
             source_port_ranges = "*" 
             source_address_prefix = "*"
             destination_port_ranges =  "22" 
-            destination_address_prefix = "*"    
+            destination_address_prefix = "${local.subnetPrefixes["bastion"]}"    
         }
     ]
 

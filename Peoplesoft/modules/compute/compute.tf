@@ -1,3 +1,4 @@
+# Used for VMs that need AVsets
 resource "azurerm_virtual_machine" "compute" {
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
   count                         = "${var.compute_instance_count * var.create_av_set}"
@@ -168,7 +169,7 @@ resource "azurerm_network_interface" "compute" {
 }
 resource "azurerm_network_interface_backend_address_pool_association" "compute" {
   count                   = "${var.assign_bepool * var.compute_instance_count}"  
-  network_interface_id    = "${element(azurerm_network_interface.compute.*.id, count.index)}"
+  network_interface_id     = "${element(concat(azurerm_network_interface.compute.*.id, azurerm_network_interface.compute_no_avset.*.id), count.index)}"
   ip_configuration_name   = "ipconfig${count.index}"
   backend_address_pool_id = "${var.backendpool_id}"
 }
