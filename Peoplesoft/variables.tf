@@ -12,11 +12,11 @@ variable "client_secret" {
 variable "client_id" {
 }
 variable "vnet_resource_group_name" {
-    default = "ps-rg"
+    default = "ps-rg3"
     description = "Name of the Resource Group where the VNET is/will be located. This can be same as the app resource group or different."
 }
 variable "resource_group_name" {
-    default = "ps-rg"
+    default = "ps-rg3"
 }
 variable "lb_sku" {
     default = "Standard"
@@ -120,6 +120,7 @@ variable "identity_instance_count" {
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
 
 variable "vm_size" {
+    # default = "Standard_D2_v2"
     default = "Standard_E16-8s_v3"
 }
 variable "os_publisher" {

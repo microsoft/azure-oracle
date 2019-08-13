@@ -16,9 +16,7 @@ locals {
     vnet_name = "${var.vnet_cidr == "0" ? 
     element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
     element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
-
-    # vnet_cidr = "${var.vnet_cidr == "0" ? element(data.azurerm_virtual_network.primary_vnet.address_space, 0) : var.vnet_cidr}"
-
+ 
     vnet_cidr = "${var.vnet_cidr == "0" ? element(concat(data.azurerm_virtual_network.primary_vnet.*.address_space, list("")), 0) : var.vnet_cidr}"
     #####################
     ## NSGs
@@ -27,13 +25,10 @@ locals {
     bastion_sr_inbound = [
         {   # SSH from outside
             source_port_ranges = "*" 
-            source_address_prefix = "Internet"
+            source_address_prefix = "*"
             destination_port_ranges =  "22" 
-        },{ # SSH from within any of the servers
-            source_port_ranges =  "*" 
-            source_address_prefix = "VirtualNetwork"
-            destination_port_ranges =  "22" 
-        } 
+            destination_address_prefix = "*"    
+        }
     ]
 
     bastion_sr_outbound = [
@@ -41,6 +36,7 @@ locals {
             source_port_ranges =  "*" 
             source_address_prefix = "VirtualNetwork"
             destination_port_ranges =  "22" 
+            destination_address_prefix = "*"    
         }    
     ]
 
@@ -85,21 +81,21 @@ locals {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["bastion"]}"                
             destination_port_ranges = "22" 
-            destination_address_prefix = "*"             
+            destination_address_prefix = "${local.subnetPrefixes["webserver"]}"               
         },
                {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["elasticsearch"]}"                
-            destination_port_ranges = "*" 
-            destination_address_prefix = "*"             
+            destination_port_ranges = "80" 
+            destination_address_prefix = "${local.subnetPrefixes["webserver"]}"                
         }
     ]
 
     webserver_sr_outbound = [
                 {
             source_port_ranges =  "*" 
-            source_address_prefix = "*"  # ob to Application Servers               
-            destination_port_ranges = "*" 
+            source_address_prefix = "${local.subnetPrefixes["webserver"]}"                 
+            destination_port_ranges = "80" 
             destination_address_prefix = "${local.subnetPrefixes["application"]}"             
         },
                    {
@@ -183,9 +179,9 @@ locals {
      identity_sr_outbound = [
         {  # SSH to any of the servers
             source_port_ranges =  "*" 
-            source_address_prefix = "db_subnet"  #need address range   
+            source_address_prefix =  "${local.subnetPrefixes["identity"]}"     
             destination_port_ranges =  "1521" 
-        
+            destination_address_prefix = "192.168.10.0"      
         }
     ]
 
@@ -206,10 +202,7 @@ locals {
     # database_sr_outbound = [
     # ]
 
-    ##########################################
-    ## VMs in these subnets will need Availability sets.
-    ##########################################
-  #  needAVSets = [ "presentation", "application" ]
+
 }
 
 ############################################################################################
@@ -225,14 +218,14 @@ resource "azurerm_resource_group" "rg" {
 
 data "azurerm_virtual_network" "primary_vnet" {
     name = "${var.vnet_name}"
-    resource_group_name = "${var.vnet_resource_group_name}"
+    resource_group_name = "${azurerm_resource_group.rg.name}"
     count = "${var.vnet_cidr == "0" ? 1 : 0}"
 }
 
 resource "azurerm_virtual_network" "primary_vnet" {
   name                = "${var.vnet_name}"
-  resource_group_name = "${var.vnet_resource_group_name}"
-  location            = "${var.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location = "${var.location}"
   tags                = "${var.tags}"
   address_space       = ["${local.vnet_cidr}"]
   count = "${var.vnet_cidr != "0" ? 1 : 0}"
@@ -252,7 +245,7 @@ resource "azurerm_dns_zone" "oci_vcn_dns" {
 resource "azurerm_dns_a_record" "db_a_record" {
  name = "${var.db_name}-scan.${var.oci_subnet_name}"
  resource_group_name = "${azurerm_resource_group.rg.name}"
- zone_name = "${azurerm_dns_zone.oci_vcn_dns.id}"
+ zone_name = "${azurerm_dns_zone.oci_vcn_dns.name}"
  ttl = 3600
  records = ["${var.db_scan_ip_addresses}"]
 }
@@ -443,7 +436,7 @@ module "create_app" {
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   create_av_set             = true 
   create_public_ip          = false
-  create_data_disk          = false
+  create_data_disk          = true
   assign_bepool             = false
  
 }
