@@ -230,7 +230,7 @@ resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
   
   settings = <<SETTINGS
   {
-    "commandToExecute": "sh diskmount.sh ${var.admin_username}",
+    "commandToExecute": "sh OL_diskmount.sh ${var.admin_username}",
     "fileUris": ["https://scratchwasb.blob.core.windows.net/publiccontainer/OL_diskmount.sh"]
   }
   SETTINGS
