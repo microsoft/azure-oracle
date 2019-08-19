@@ -220,25 +220,30 @@ resource "azurerm_resource_group" "rg" {
   location = "${var.location}"
   tags     = "${var.tags}"     
 }
+resource "azurerm_resource_group" "vnet_rg" {
+    name = "${var.vnet_resource_group_name}"
+    location = "${var.location}"
+    tags = "${var.tags}"
+}
 
 ############################################################################################
 # Create the virtual network 
 
 data "azurerm_virtual_network" "primary_vnet" {
     name = "${var.vnet_name}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    resource_group_name = "${var.vnet_resource_group_name}"
     count = "${var.vnet_cidr == "0" ? 1 : 0}"
 }
 
 resource "azurerm_virtual_network" "primary_vnet" {
   name                = "${var.vnet_name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location = "${var.location}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
+  location            = "${var.location}"
   tags                = "${var.tags}"
   address_space       = ["${local.vnet_cidr}"]
   count = "${var.vnet_cidr != "0" ? 1 : 0}"
-}
 
+}
 
 #################################################
 # Setting up a private DNS Zone & A-records for OCI DNS resolution
@@ -360,7 +365,7 @@ module "create_subnets" {
     source = "./modules/network/subnets"
 
     subnet_cidr_map = "${local.subnetPrefixes}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
     vnet_name = "${azurerm_virtual_network.primary_vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
@@ -410,6 +415,7 @@ module "create_bastion" {
   create_av_set             = false  
   create_public_ip          = true
   assign_bepool             = false
+  create_data_disk          = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
   
@@ -446,6 +452,7 @@ module "create_app" {
   create_av_set             = true 
   create_public_ip          = false
   assign_bepool             = false
+  create_data_disk          = true
  
 }
 
@@ -481,6 +488,7 @@ module "create_web" {
   create_av_set             = true 
   create_public_ip          = false
   assign_bepool             = true
+  create_data_disk          = true
 }
 
 ###################################################
@@ -513,6 +521,7 @@ module "create_es" {
   create_av_set             = true 
   create_public_ip          = false
   assign_bepool             = false
+  create_data_disk          = true
 }
 
 ###################################################
@@ -545,6 +554,7 @@ module "create_ps" {
   create_av_set             = true 
   create_public_ip          = false
   assign_bepool             = false
+  create_data_disk          = true
 
  
 }
@@ -577,6 +587,7 @@ module "create_identity" {
   create_av_set             = false
   create_public_ip          = false
   assign_bepool             = false
+  create_data_disk          = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
 }
@@ -611,6 +622,7 @@ module "create_toolsclient" {
   create_av_set             = false
   create_public_ip          = false
   assign_bepool             = false
+  create_data_disk          = true
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
 }

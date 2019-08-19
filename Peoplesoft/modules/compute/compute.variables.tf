@@ -82,3 +82,6 @@ variable "backendpool_id" {
 variable "create_vm" {
   default = "1S"
 }
+variable "create_data_disk" {
+  default = true
+}

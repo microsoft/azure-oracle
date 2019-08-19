@@ -108,7 +108,7 @@ resource "azurerm_managed_disk" "vm_data_disks" {
     create_option        = "Empty"
     disk_size_gb         = "${var.data_disk_size_gb}"
     # count                = "${var.create_data_disk}"
-    count                = "${var.compute_instance_count * var.create_vm}"
+    count                = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
 
 }
 
@@ -119,11 +119,11 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_data_disks_attachmen
   lun                = "${count.index}"
   caching            = "None"
   # count = "${var.create_data_disk}"
-  count                = "${var.compute_instance_count * var.create_vm}"
+  count                = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
 
 }
 resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
- count    = "${var.compute_instance_count * var.create_vm}"
+ count    = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
  # count = "${var.compute_instance_count * var.create_data_disk * var.create_vm}"
  name = "vm_disk_mount"
  location = "${var.location}"

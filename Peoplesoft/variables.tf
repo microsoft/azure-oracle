@@ -11,12 +11,14 @@ variable "client_secret" {
 
 variable "client_id" {
 }
-variable "vnet_resource_group_name" {
-    default = "ps-rg3"
-    description = "Name of the Resource Group where the VNET is/will be located. This can be same as the app resource group or different."
-}
+
 variable "resource_group_name" {
-    default = "ps-rg3"
+    default = "ps-rg-vms"
+}
+
+variable "vnet_resource_group_name" {
+    default = "ps-rg-vnet"
+    description = "Name of the Resource Group where the VNET is/will be located. This can be same as the app resource group or different."
 }
 variable "lb_sku" {
     default = "Standard"
@@ -43,6 +45,7 @@ variable "create_av_set" {
 variable "create_data_disk" {
   default = true
 }
+
 
 # Host Name Prefixes
 variable "compute_hostname_prefix" {
