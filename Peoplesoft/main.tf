@@ -28,6 +28,7 @@ locals {
             source_address_prefix = "*"
             destination_port_ranges =  "22" 
             destination_address_prefix = "${local.subnetPrefixes["bastion"]}"    
+            priority = "200"
         }
     ]
 
@@ -37,6 +38,7 @@ locals {
             source_address_prefix = "VirtualNetwork"
             destination_port_ranges =  "22" 
             destination_address_prefix = "*"    
+            priority = "250"
         }    
     ]
 
@@ -96,6 +98,12 @@ locals {
             source_port_ranges =  "*" 
             source_address_prefix = "${local.subnetPrefixes["webserver"]}"                 
             destination_port_ranges = "80" 
+            destination_address_prefix = "${local.subnetPrefixes["application"]}"             
+        },
+                      {
+            source_port_ranges =  "*" 
+            source_address_prefix = "${local.subnetPrefixes["webserver"]}"                 
+            destination_port_ranges = "443" 
             destination_address_prefix = "${local.subnetPrefixes["application"]}"             
         },
                    {
@@ -398,9 +406,9 @@ module "create_bastion" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = false  
   create_public_ip          = true
-  create_data_disk          = false
   assign_bepool             = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
@@ -434,9 +442,9 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = true 
   create_public_ip          = false
-  create_data_disk          = true
   assign_bepool             = false
  
 }
@@ -469,9 +477,9 @@ module "create_web" {
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["webserver"]}"
   backendpool_id            = "${module.lb.backendpool_id}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = true 
   create_public_ip          = false
-  create_data_disk          = false
   assign_bepool             = true
 }
 
@@ -501,9 +509,9 @@ module "create_es" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["elasticsearch"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = true 
   create_public_ip          = false
-  create_data_disk          = false
   assign_bepool             = false
 }
 
@@ -533,9 +541,9 @@ module "create_ps" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = true 
   create_public_ip          = false
-  create_data_disk          = false
   assign_bepool             = false
 
  
@@ -565,9 +573,9 @@ module "create_identity" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["identity"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = false
   create_public_ip          = false
-  create_data_disk          = true
   assign_bepool             = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
@@ -599,9 +607,9 @@ module "create_toolsclient" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["client"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
+  create_vm                 = true
   create_av_set             = false
   create_public_ip          = false
-  create_data_disk          = false
   assign_bepool             = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"

@@ -120,8 +120,8 @@ variable "identity_instance_count" {
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
 
 variable "vm_size" {
-    # default = "Standard_D2_v2"
-    default = "Standard_E16-8s_v3"
+    default = "Standard_D2_v2"
+    # default = "Standard_E16-8s_v3"
 }
 variable "os_publisher" {
     default = "Oracle"

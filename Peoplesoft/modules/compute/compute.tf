@@ -1,7 +1,7 @@
 # Used for VMs that need AVsets
 resource "azurerm_virtual_machine" "compute" {
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.compute_instance_count * var.create_av_set}"
+  count                         = "${(var.compute_instance_count * var.create_av_set) * var.create_vm}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   availability_set_id           = "${azurerm_availability_set.compute.id}"
@@ -52,7 +52,7 @@ resource "azurerm_virtual_machine" "compute" {
 # Used only for VMs that do not use AVsets
 resource "azurerm_virtual_machine" "compute_no_avset" {
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.create_av_set ? 0 : 1}"
+  count                         = "${(var.create_av_set ? 0 : 1) * var.create_vm}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   vm_size                       = "${var.vm_size}"
@@ -108,7 +108,7 @@ resource "azurerm_managed_disk" "vm_data_disks" {
     create_option        = "Empty"
     disk_size_gb         = "${var.data_disk_size_gb}"
     # count                = "${var.create_data_disk}"
-    count                = "${var.compute_instance_count * var.create_data_disk}"
+    count                = "${var.compute_instance_count * var.create_vm}"
 
 }
 
@@ -119,11 +119,11 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_data_disks_attachmen
   lun                = "${count.index}"
   caching            = "None"
   # count = "${var.create_data_disk}"
-  count                = "${var.compute_instance_count * var.create_data_disk}"
+  count                = "${var.compute_instance_count * var.create_vm}"
 
 }
 resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
- count    = "${var.compute_instance_count * var.create_data_disk}"
+ count    = "${var.compute_instance_count * var.create_vm}"
  # count = "${var.compute_instance_count * var.create_data_disk * var.create_vm}"
  name = "vm_disk_mount"
  location = "${var.location}"
@@ -153,7 +153,7 @@ resource "azurerm_availability_set" "compute" {
 }
 
 resource "azurerm_network_interface" "compute" {
-  count                         = "${var.compute_instance_count}"
+  count                         = "${var.compute_instance_count * var.create_vm}"
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
@@ -168,8 +168,8 @@ resource "azurerm_network_interface" "compute" {
   tags = "${var.tags}"
 }
 resource "azurerm_network_interface_backend_address_pool_association" "compute" {
-  count                   = "${var.assign_bepool * var.compute_instance_count}"  
-  network_interface_id     = "${element(concat(azurerm_network_interface.compute.*.id, azurerm_network_interface.compute_no_avset.*.id), count.index)}"
+  count                   = "${(var.assign_bepool * var.compute_instance_count) * var.create_vm}"  
+  network_interface_id     = "${element(concat(azurerm_network_interface.compute.*.id), count.index)}"
   ip_configuration_name   = "ipconfig${count.index}"
   backend_address_pool_id = "${var.backendpool_id}"
 }
