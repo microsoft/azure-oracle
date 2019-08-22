@@ -83,3 +83,6 @@ variable "create_data_disk" {
 variable "assign_bepool" {
 
 }
+variable "create_vm" {
+  
+}
