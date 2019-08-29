@@ -10,6 +10,11 @@ locals {
         AppGWSubnet   = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 9)}"
     }
 
+    vnet_name = "${var.vnet_cidr == "0" ? 
+    element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
+    element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
+ 
+    vnet_cidr = "${var.vnet_cidr == "0" ? element(concat(data.azurerm_virtual_network.primary_vnet.*.address_space, list("")), 0) : var.vnet_cidr}"
     #####################
     ## NSGs
 
@@ -64,16 +69,40 @@ resource "azurerm_resource_group" "rg" {
   tags     = "${var.tags}"     
 }
 
+resource "azurerm_resource_group" "vnet_rg" {
+    name = "${var.vnet_resource_group_name}"
+    location = "${var.location}"
+    tags = "${var.tags}"
+}
+
 ############################################################################################
 # Create the virtual network
 
-resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.vnet_name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${var.location}"
-  address_space       = ["${var.vnet_cidr}"] 
-  tags                = "${var.tags}"
+# resource "azurerm_virtual_network" "vnet" {
+#   name                = "${var.vnet_name}"
+#   resource_group_name = "${azurerm_resource_group.rg.name}"
+#   location            = "${var.location}"
+#   address_space       = ["${var.vnet_cidr}"] 
+#   tags                = "${var.tags}"
+# }
+
+data "azurerm_virtual_network" "primary_vnet" {
+    name = "${var.vnet_name}"
+    resource_group_name = "${var.vnet_resource_group_name}"
+    count = "${var.vnet_cidr == "0" ? 1 : 0}"
 }
+
+resource "azurerm_virtual_network" "primary_vnet" {
+  name                = "${var.vnet_name}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
+  location            = "${var.location}"
+  tags                = "${var.tags}"
+  address_space       = ["${local.vnet_cidr}"]
+  count = "${var.vnet_cidr != "0" ? 1 : 0}"
+
+}
+
+
 
 ###############################################################
 # Create each of the Network Security Groups
@@ -82,7 +111,7 @@ resource "azurerm_virtual_network" "vnet" {
 module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name            = "${azurerm_virtual_network.vnet.name}-nsg-bastionftp"
+    nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-bastionftp"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
@@ -94,7 +123,7 @@ module "create_networkSGsForBastion" {
 module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
-    nsg_name = "${azurerm_virtual_network.vnet.name}-nsg-application"    
+    nsg_name = "${azurerm_virtual_network.primary_vnet.name}-nsg-application"    
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
@@ -126,8 +155,8 @@ module "create_subnets" {
     source = "./modules/network/subnets"
 
     subnet_cidr_map = "${local.subnetPrefixes}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    vnet_name = "${azurerm_virtual_network.vnet.name}"
+    resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
+    vnet_name = "${azurerm_virtual_network.primary_vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
 }
@@ -176,6 +205,7 @@ module "create_bastion" {
   create_public_ip          = true
   create_data_disk          = false
   assign_bepool             = false
+  create_vm                 = true
  
   
 }
@@ -209,6 +239,7 @@ module "create_ftp" {
   create_public_ip          = false
   create_data_disk          = false
   assign_bepool             = false
+  create_vm                 = true
 }
 
 
@@ -244,6 +275,7 @@ module "create_app" {
   create_public_ip          = false
   create_data_disk          = true
   assign_bepool             = true
+  create_vm                 = true
 
  
 }
@@ -278,6 +310,7 @@ module "create_idm" {
   create_public_ip          = false
   create_data_disk          = true
   assign_bepool             = true 
+  create_vm                 = true
 }
 
 ###################################################
@@ -311,6 +344,7 @@ module "create_integ" {
   create_public_ip          = false
   create_data_disk          = true
   assign_bepool             = true
+  create_vm                 = true
  }
 
 
@@ -345,6 +379,7 @@ module "create_RIA" {
   create_public_ip          = false
   create_data_disk          = true
   assign_bepool             = true
+  create_vm                 = true
  
 }
 
@@ -464,7 +499,7 @@ module "create_app_gateway" {
   location            = "${var.location}"
   prefix              = "appgw"
   frontend_subnet_id  = "${module.create_subnets.subnet_ids["AppGWSubnet"]}"
-  vnet_name           = "${azurerm_virtual_network.vnet.name}"
+  vnet_name           = "${azurerm_virtual_network.primary_vnet.name}"
   lb_frontend_ips        = "${azurerm_lb.inlb.private_ip_addresses}"
 
  

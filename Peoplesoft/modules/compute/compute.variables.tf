@@ -64,9 +64,6 @@ variable "boot_diag_SA_endpoint" {
 variable "create_av_set" {
 
 }
-variable "create_data_disk" {
-
-}
 variable "assign_bepool" {
 
 }
@@ -81,4 +78,10 @@ variable "public_ip_address_allocation" {
 }
 variable "backendpool_id" {
   default = "0"
+}
+variable "create_vm" {
+  default = "1S"
+}
+variable "create_data_disk" {
+  default = true
 }

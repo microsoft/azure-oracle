@@ -3,10 +3,10 @@
 ####################################
 output "vnet_name" {
     description = "VNET Name being created"
-    value = "${azurerm_virtual_network.vnet.name}"
+    value = "${azurerm_virtual_network.primary_vnet.*.name}"
 }
 
 output "vnet_cidr" {
     description = "VNET CIDR"
-    value = "${azurerm_virtual_network.vnet.address_space}"
+    value = "${azurerm_virtual_network.primary_vnet.*.address_space}"
 }

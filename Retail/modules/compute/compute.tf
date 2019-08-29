@@ -1,7 +1,8 @@
 # Used only for VMs that will be in AVSets
 resource "azurerm_virtual_machine" "compute" {
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.compute_instance_count * var.create_av_set}"
+  # count                         = "${var.compute_instance_count * var.create_av_set}"
+  count                         = "${(var.compute_instance_count * var.create_av_set) * var.create_vm}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   availability_set_id           = "${azurerm_availability_set.compute.id}"
@@ -52,7 +53,8 @@ resource "azurerm_virtual_machine" "compute" {
 # Used only for VMs that do not use AVsets
 resource "azurerm_virtual_machine" "compute_no_avset" {
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}"
-  count                         = "${var.create_av_set ? 0 : 1}"
+  # count                         = "${var.create_av_set ? 0 : 1}"
+  count                         = "${(var.create_av_set ? 0 : 1) * var.create_vm}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   vm_size                       = "${var.vm_size}"
@@ -110,6 +112,7 @@ resource "azurerm_availability_set" "compute" {
   tags                         = "${var.tags}"
 }
 
+# Data Disk Attachements
 resource "azurerm_managed_disk" "vm_data_disks" {
     name                 = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-data-01"  
     location             = "${var.location}"
@@ -117,18 +120,38 @@ resource "azurerm_managed_disk" "vm_data_disks" {
     storage_account_type = "${var.storage_account_type}"
     create_option        = "Empty"
     disk_size_gb         = "${var.data_disk_size_gb}"
-    count                = "${var.create_data_disk}"
+    count                = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
 
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "vm_data_disks_attachment" {
   managed_disk_id    = "${element(azurerm_managed_disk.vm_data_disks.*.id, count.index)}"
-  virtual_machine_id = "${element(azurerm_virtual_machine.compute.*.id, count.index)}"
+  virtual_machine_id = "${element(concat(azurerm_virtual_machine.compute.*.id, azurerm_virtual_machine.compute_no_avset.*.id), count.index)}"
   lun                = "${count.index}"
   caching            = "None"
-  count = "${var.create_data_disk}"
+  count                = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
+
+}
+resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
+ count    = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
+ name = "vm_disk_mount"
+ location = "${var.location}"
+ resource_group_name = "${var.resource_group_name}"
+ virtual_machine_name = "${element(concat(azurerm_virtual_machine.compute.*.name, azurerm_virtual_machine.compute_no_avset.*.name), count.index)}"
+ publisher = "Microsoft.Azure.Extensions"
+ type                 = "CustomScript"
+ type_handler_version = "2.0"
+ 
+ settings = <<SETTINGS
+ {
+ "commandToExecute": "sh OL_diskmount.sh ${var.admin_username}",
+ "fileUris": ["https://scratchwasb.blob.core.windows.net/publiccontainer/OL_diskmount.sh"]
+ }
+ SETTINGS
 }
 
+
+# NIC Attachements
 resource "azurerm_network_interface" "compute" {
   count                         = "${var.compute_instance_count}"
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  

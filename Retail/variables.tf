@@ -9,6 +9,11 @@ variable "subscription_id" {
 variable "resource_group_name" {
     default = "retail-rg"
 }
+
+variable "vnet_resource_group_name" {
+    default = "retail-rg-vnet"
+    description = "Name of the Resource Group where the VNET is/will be located. This can be same as the app resource group or different."
+}
 variable "lb_sku" {
     default = "Standard"
 
