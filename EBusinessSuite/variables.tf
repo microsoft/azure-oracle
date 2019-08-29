@@ -10,7 +10,7 @@ variable "client_id" {}
 variable "client_secret" {}
 
 variable "resource_group_name" {
-    default = "ebs-rg"
+    description = "Name of the resource group that will host the EBS Application"
 }
 
 variable "vnet_resource_group_name" {
@@ -34,31 +34,19 @@ variable "tags" {
   }
 }
 
-variable "vm_hostname_prefix_app" {
-  description = "Application server host resource prefix"
-  default = "app"
-}
-variable "vm_hostname_prefix_bastion" {
-  description = "Bastion server host resource prefix"
-  default = "bastion"
-}
-
-variable "vm_hostman_prefix_identity" {
-    description = "Identity Server Host resource prefix"
-}
-
 variable "app_instance_count" {
   description = "Application instance count"
   default = 2
 }
 
+variable "enable_identity_integration" {
+    description = "Boolean flag indicating whether Identity federation with IDCS or OAM is to be setup as a part of the application setup"
+    default = true
+}
+
 variable "identity_instance_count" {
     description = "Instances of EBS Asserter (for IDCS) or Oracle HTTP Server/OAM WebGate (for OAM)"
     default = 2
-}
-variable "bastion_instance_count" {
-  description = "Bastion instance count"
-  default = 1
 }
 
 variable "vm_size" {
@@ -92,9 +80,6 @@ variable "bastion_boot_volume_size_in_gb" {
 variable "data_disk_size_gb" {
     default = 128
 }
-variable "data_sa_type" {
-    default = "Standard_LRS"
-}
 variable "admin_username" {
     default = "sysadmin"
 }
@@ -124,9 +109,28 @@ variable "vnet_cidr" {
     description = "Enter a '0' if the VNET already exists. Currently, only VNETs with 1 address space are supported."
 }
 
-variable "database_in_azure" {
-    default = false
+variable "oci_vcn_name" {
+    description = "The name of your Oracle Virtual Cloud Network. This will be used for DNS name resolution."
 }
 
+variable "oci_subnet_name" {
+    description = "The name of your subnet in OCI where the DB will reside. This will be used for DNS name resolution."
+}
 
+variable "oci_db_subnet_cidr" {
+    description = "The IP address space of your database subnet (or VNET IP Address space, if using Exadata Cloud Service) in CIDR notation."
+}
 
+variable "db_name" {
+    description = "The name of your database in OCI."
+}
+
+variable "subnet_bits" {
+    default = 3
+    description = "Enter the bits for the subnet. E.x: if you'd like 8 IP addresses per subnet, enter 3 (2^3 = 8). If you'd like 16 IP addresses per subnet, enter 4 (2^4=16). Azure reserves 5 IP addresses from each subnet."
+}
+
+variable "db_scan_ip_addresses" {
+    type = "list",
+    description = "Enter the scan IP addresses of the Database for DNS resolution"
+}

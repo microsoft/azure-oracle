@@ -41,8 +41,6 @@ variable "attach_data_disks" {
 }
 variable "data_disk_size_gb" {
 }
-variable "data_sa_type" {
-}
 variable "admin_username" {
 }
 //variable "admin_password" {
@@ -75,9 +73,6 @@ variable "public_ip_sku" {
   default = "Standard"
 }
 
-#TODO
-/*
-variable "network_security_group_id" {
-
+variable "create_vm" {
+  description = "This variable is primarily used for the EBS Asserter VMs. It is a boolean variable that indicates whether or not the Identity VMs need to be created."
 }
-*/
