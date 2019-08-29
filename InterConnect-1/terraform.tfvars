@@ -1,0 +1,9 @@
+deployment_tag = "cross-cloud-test",
+resource_group_name = "uksouth-ckt",
+deployment_location = "UK South",
+peering_location = "London",
+bandwidth_in_mbps = "1000",
+pvt_peering_primary_subnet = "192.168.254.0/30",
+pvt_peering_secondary_subnet = "192.168.254.4/30",
+expressroute_sku = "Standard",
+expressroute_billing_model = "MeteredData"

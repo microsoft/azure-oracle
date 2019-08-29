@@ -45,7 +45,7 @@ We will discuss the details of **InterConnect-1** here.
 
 ### InterConnect-1: Create an Azure Express Route Circuit
 
-1. Open the [express_route_input.json](./input/express_route_input.json) file and fill in the information as required. Details regarding what information is expected can be found [below](#expressroutecircuit). Save and close the file.
+1. Open the [terraform.tfvars](./terraform.tfvars) file and fill in the information as required. Details regarding what information is expected can be found [below](#expressroutecircuit). Save and close the file.
 
 1. From the terminal, navigate to the `InterConnect-1` folder (if you haven't already) and run a terraform init command:
     
@@ -57,7 +57,7 @@ We will discuss the details of **InterConnect-1** here.
 
 1. Next, run the `terraform apply` command as follows:
 
-    `$ terraform apply -var-file ./input/express_route_input.json`
+    `$ terraform apply`
 
 1. This will create the required Azure resources. You will see the output as follows. Please copy the `expressroute_service_key`. **You will need it to create the OCI FastConnect Circuit**.
 

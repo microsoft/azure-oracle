@@ -1,9 +1,0 @@
-{
-    "resource_group_name": "test-resourcegroup",
-    "deployment_location": "East US",
-    "express_route_name": "test-resourcegroup-Az2OCI-ER-Circuit",
-    "vnet_name": "azure-oci-test-vnet", 
-    "vnet_cidr": "192.168.32.0/22",
-    "GatewaySubnet_cidr": "192.168.34.128/25",
-    "express_route_gateway_name": "0"
-}

@@ -4,7 +4,12 @@ variable "tenant_id" {
 variable "subscription_id" {}
 variable "client_id" {}
 variable "client_secret" {}
-variable "resource_group_name" {}
+variable "resource_group_name" {
+    description = "Name of the Resource Group that hosts your ExpressRoute Circuit"
+}
+variable "vnet_resource_group_name" {
+    description = "Name of the resource group that your Virtual Network will reside in (or already resides in). Please enter the name of the resource group, even if it is the same group that holds your ExpressRoute circuit."
+}
 variable "deployment_location" {}
 variable "express_route_name" {}
 variable "vnet_name" {

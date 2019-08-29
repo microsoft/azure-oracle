@@ -48,7 +48,7 @@ We will discuss the details of **InterConnect-2** here.
 
 ### InterConnect-2: Setup Virtual Network Connectivity
 
-1. Open the [gateway_connection_input.json](./input/gateway_connection_input.json) file and fill in the information as required. Details regarding what information is expected can be found [below](#expressroutecircuit). Save and close the file.
+1. Open the [terraform.tfvars](./terraform.tfvars) file and fill in the information as required. Details regarding what information is expected can be found [below](#expressroutecircuit). Save and close the file.
 
 1. From the terminal, navigate to the `InterConnect-2` folder (if you haven't already) and run a terraform init command:
     
@@ -56,7 +56,7 @@ We will discuss the details of **InterConnect-2** here.
 
 1. Next, run the `terraform apply` command as follows:
 
-    `$ terraform apply -var-file ./input/gateway_connection_input.json`
+    `$ terraform apply`
 
 1. If your Express Route Provider Status is not set to **Provisioned**, you will receive the following output:
 
@@ -96,8 +96,8 @@ More information on this topic can be found in the [Azure documentation](https:/
     > **Note**: Please add the region name as shown in the link above. For example, US East region code 'East US'.
 - `express_route_name`: The name of the Express Route Circuit to be used for the inter-connect. This Express Route circuit must already exist and must have Oracle Cloud Infrastructure as the provider.
 - `vnet_name`: The name of the Virtual Network, whether it already exists or needs to be created by Terraform.
-- `vnet_cidr`: The IP Address space for your VNET in CIDR notation. You may enter '0' if your VNET exists. If a new VNET is being created, a valid IP Address space must be entered.
-- `GatewaySubnet_cidr`: This is the Gateway subnet address space in CIDR notation. If you have an existing 'GatewaySubnet' in your VNET, you may enter a '0' and the terraform script will lookup the information needed to find the information for the subnet. It is recommended that your GatewaySubnet have at least a /27 or larger (/27, /26, /25, etc.) for this inter-connect, especially when deploying a 10 Gbps throughput ExpressRoute circuit. Bear in mind, that there can only be 1 GatewaySubnet per VNET. If you are also planning on connecting your on-premises network to Azure using ExpressRoute/VPN, the recommendation is to carve out a GatewaySubnet that would be sufficient to route traffic to on-prem and to OCI. See this [link](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings#requirements) for more details.
+- `vnet_cidr`: The IP Address space for your VNET in CIDR notation. Please enter '0' if your VNET exists. If a new VNET is being created, a valid IP Address space must be entered.
+- `GatewaySubnet_cidr`: This is the Gateway subnet address space in CIDR notation. If you have an existing 'GatewaySubnet' in your VNET, please enter a '0' and the terraform script will lookup the information needed to find the information for the subnet. It is recommended that your GatewaySubnet have at least a /27 or larger (/27, /26, /25, etc.) for this inter-connect, especially when deploying a 10 Gbps throughput ExpressRoute circuit. Bear in mind, that there can only be 1 GatewaySubnet per VNET. If you are also planning on connecting your on-premises network to Azure using ExpressRoute/VPN, the recommendation is to carve out a GatewaySubnet that would be sufficient to route traffic to on-prem and to OCI. See this [link](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings#requirements) for more details.
 - `express_route_gateway_name`: The name of an existing ExpressRoute Gateway. Enter a '0' if you DO NOT have an existing ExpressRoute Gateway setup in your VNET and one will be created for you. The Gateway will be named: '<VNET_Name>-ERGW'.
 
 # Limitations

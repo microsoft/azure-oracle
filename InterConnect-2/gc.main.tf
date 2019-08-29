@@ -3,17 +3,22 @@ resource "azurerm_resource_group" "er_rg" {
   location = "${var.deployment_location}"
 }
 
+resource "azurerm_resource_group" "vnet_rg" {
+  name = "${var.vnet_resource_group_name}"
+  location = "${var.deployment_location}"
+}
+
 # Check if a VNET exists
 data "azurerm_virtual_network" "primary_vnet" {
   name = "${var.vnet_name}"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
   count = "${var.vnet_cidr == "0" ? 1 : 0}"
 }
 
 # Create a virtual network within the resource group (no DNS Servers)
 resource "azurerm_virtual_network" "primary_vnet" {
   name                = "${var.vnet_name}"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
   location            = "${var.deployment_location}"
   address_space       = ["${var.vnet_cidr}"]
   count = "${var.vnet_cidr != "0" ? 1 : 0}"
@@ -22,14 +27,14 @@ resource "azurerm_virtual_network" "primary_vnet" {
 # Check if the GatewaySubnet exists. If not, create one
 data "azurerm_subnet" "gateway_subnet" {
   name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
   virtual_network_name = "${local.vnet_name}"
   count = "${var.GatewaySubnet_cidr == "0" ? 1 : 0}"
 }
 
 resource "azurerm_subnet" "gateway_subnet" {
   name                 = "GatewaySubnet"
-  resource_group_name  = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name  = "${azurerm_resource_group.vnet_rg.name}"
   virtual_network_name = "${local.vnet_name}"
   address_prefix       = "${var.GatewaySubnet_cidr}"
   count = "${var.GatewaySubnet_cidr !=0 ? 1 : 0}"
@@ -56,7 +61,7 @@ locals {
 # Get information about an existing ER Gateway
 data "azurerm_virtual_network_gateway" "expressroute_gateway" {
   name = "${var.express_route_gateway_name}"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name = "${var.vnet_resource_group_name}"
   count = "${var.express_route_gateway_name != "0" ? 1 : 0}"
 }
 
@@ -66,7 +71,7 @@ module "expressroute_gateway" {
 
   vnet_name = "${local.vnet_name}"
   location = "${var.deployment_location}"
-  resource_group_name = "${azurerm_resource_group.er_rg.name}"
+  resource_group_name = "${azurerm_resource_group.vnet_rg.name}" 
   gateway_subnet_id = "${local.gateway_subnet_id}"
 
   # Ensure that there is no Gateway already present. If there is, then we need to ensure that it is not of type ExpressRoute Gateway in order to create a new one.
@@ -78,17 +83,19 @@ data "azurerm_express_route_circuit" "ER_circuit" {
     name = "${var.express_route_name}"
 }
 
+#TODO: Delete the connection and the gateway and run through this script again
+
 resource "azurerm_virtual_network_gateway_connection" "Az2OCI-ER-conn" {
-  name                = "${var.resource_group_name}-Az2OCI-ER-conn"
+  name                = "${local.vnet_name}-Az2OCI-ER-conn"
   location            = "${var.deployment_location}"
-  resource_group_name = "${var.resource_group_name}"
+  resource_group_name = "${azurerm_resource_group.er_rg.name}"
   type                       = "ExpressRoute"
   virtual_network_gateway_id = "${var.express_route_gateway_name == "0" ? 
     module.expressroute_gateway.vnet_gw_id : 
     element(concat(data.azurerm_virtual_network_gateway.expressroute_gateway.*.id, list("")), 0)}"
   express_route_circuit_id = "${data.azurerm_express_route_circuit.ER_circuit.id}"
 
-  #The following boolean variable allows datapath connection to bypass VNet GW.
+  #The following boolean variable allows fastpath connection to bypass VNet GW for reads and writes.
   express_route_gateway_bypass = "true"
   
   count = "${data.azurerm_express_route_circuit.ER_circuit.service_provider_provisioning_state == "Provisioned" ? 1 : 0}"
