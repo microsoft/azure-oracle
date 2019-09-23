@@ -11,13 +11,14 @@ locals {
         client          = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 4)}"
         bastion         = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 5)}"
         identity        = "${cidrsubnet(var.vnet_cidr, local.vnet_cidr_increase, 6)}"
-    }
+    } 
 
     vnet_name = "${var.vnet_cidr == "0" ? 
     element(concat(data.azurerm_virtual_network.primary_vnet.*.name, list("")), 0) :
     element(concat(azurerm_virtual_network.primary_vnet.*.name, list("")), 0)}"
  
     vnet_cidr = "${var.vnet_cidr == "0" ? element(concat(data.azurerm_virtual_network.primary_vnet.*.address_space, list("")), 0) : var.vnet_cidr}"
+    
     #####################
     ## NSGs
     #Note that only one of prefix or prefixes is allowed and keywords can't be in the list.
@@ -338,6 +339,7 @@ module "create_networkSGsForIdentity" {
     outboundOverrides   = "${local.identity_sr_outbound}"
 }
 
+
 locals {
     # map of subnets which are to have NSGs attached.
     nsg_ids = {  
@@ -347,12 +349,13 @@ locals {
         #       dynamically (e.g., "${length(local.nsg_ids)}"), but terraform then 
         #       refuses to allow it to be used as a count later.  Thus it is
         #       "hard-coded" below.   TF 0.12 can work around this, but not 0.11.
-        bastion = "${module.create_networkSGsForBastion.nsg_id}"
         application = "${module.create_networkSGsForApplication.nsg_id}"
         webserver = "${module.create_networkSGsForWebserver.nsg_id}"
         elasticsearch = "${module.create_networkSGsForElasticsearch.nsg_id}"
         client = "${module.create_networkSGsForClient.nsg_id}"
+        bastion = "${module.create_networkSGsForBastion.nsg_id}"
         identity = "${module.create_networkSGsForIdentity.nsg_id}"
+
     }
     nsg_ids_len = 6
     # Number of entries in nsg_ids. Can't be calculated. See note above.
@@ -369,6 +372,7 @@ module "create_subnets" {
     vnet_name = "${azurerm_virtual_network.primary_vnet.name}"
     nsg_ids = "${local.nsg_ids}"
     nsg_ids_len = "${local.nsg_ids_len}"  # Note: terraform has to have this for count later.
+    vnet_cidr = "${var.vnet_cidr}"
 
 }
 
@@ -482,12 +486,11 @@ module "create_web" {
   compute_ssh_public_key    = "${var.webserver_ssh_public_key}"
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["webserver"]}"
-  backendpool_id            = "${module.lb.backendpool_id}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
   create_vm                 = true
   create_av_set             = true 
   create_public_ip          = false
-  assign_bepool             = true
+  assign_bepool             = false
   create_data_disk          = true
 }
 
@@ -627,19 +630,22 @@ module "create_toolsclient" {
   data_sa_type              = "${var.data_sa_type}"
 }
 
+############################################################
+# Create Application Gateway
 
-###################################################
-# Create Load Balancer
-module "lb" {
-  source = "./modules/load_balancer"
+module "create_app_gateway" {
+  source = "./modules/app_gateway"
 
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${var.location}"
-  tags                = "${var.tags}"  
-  prefix              = "${var.compute_hostname_prefix_web}"
-  lb_sku              = "${var.lb_sku}"
-  frontend_subnet_id  = "${module.create_subnets.subnet_ids["webserver"]}"
-  lb_port             = {
-        http = ["8000", "Tcp", "8000"]
-  }
+  prefix              = "appgw"
+  frontend_subnet_id  = "${module.create_subnets.appgw_subnet_id}"
+  vnet_name           = "${azurerm_virtual_network.primary_vnet.name}"
+  web_backend_ips     = "${module.create_web.backend_ips}"
+
+ 
 }
+
+
+
+

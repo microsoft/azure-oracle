@@ -10,3 +10,4 @@ output "vnet_cidr" {
     description = "VNET CIDR"
     value = "${azurerm_virtual_network.primary_vnet.*.address_space}"
 }
+

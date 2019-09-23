@@ -43,14 +43,14 @@ resource "azurerm_application_gateway" "app_gw" {
   }
 
   backend_address_pool {
-    name = "app-${local.backend_address_pool_name}"
-    ip_addresses = ["${var.lb_frontend_ips[0]}"]
+    name = "web-${local.backend_address_pool_name}"
+    ip_addresses = ["${var.web_backend_ips}"]
   }
 
 
   backend_http_settings {
     name                  = "8000-${local.http_setting_name}"
-    cookie_based_affinity = "Disabled"
+    cookie_based_affinity = "Enabled"
     port                  = 8000
     protocol              = "Http"
     request_timeout       = 1
@@ -72,13 +72,13 @@ resource "azurerm_application_gateway" "app_gw" {
 
     url_path_map {
      name    = "peoplesoft"
-     default_backend_address_pool_name  = "app-${local.backend_address_pool_name}"
+     default_backend_address_pool_name  = "web-${local.backend_address_pool_name}"
      default_backend_http_settings_name = "8000-${local.http_setting_name}"
     
           path_rule {
             name = "webserver"
-            paths = ["/identity"]
-            backend_address_pool_name = "app-${local.backend_address_pool_name}"
+            paths = ["/web"]
+            backend_address_pool_name = "web-${local.backend_address_pool_name}"
             backend_http_settings_name = "8000-${local.http_setting_name}"
   }
           

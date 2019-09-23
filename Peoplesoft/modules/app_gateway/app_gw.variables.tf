@@ -12,6 +12,6 @@ variable "frontend_subnet_id" {}
 
 variable "vnet_name" {}
 
-variable "lb_frontend_ips" {
+variable "web_backend_ips" {
     type = "list"
 }
