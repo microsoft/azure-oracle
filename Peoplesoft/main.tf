@@ -415,8 +415,6 @@ module "create_bastion" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["bastion"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = false  
   create_public_ip          = true
   assign_bepool             = false
   create_data_disk          = false
@@ -452,10 +450,8 @@ module "create_app" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = true 
   create_public_ip          = false
-  assign_bepool             = false
+  # assign_bepool             = false
   create_data_disk          = true
  
 }
@@ -487,10 +483,8 @@ module "create_web" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["webserver"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = true 
   create_public_ip          = false
-  assign_bepool             = false
+  # assign_bepool             = false
   create_data_disk          = true
 }
 
@@ -520,10 +514,8 @@ module "create_es" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["elasticsearch"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = true 
   create_public_ip          = false
-  assign_bepool             = false
+  # assign_bepool             = false
   create_data_disk          = true
 }
 
@@ -553,10 +545,8 @@ module "create_ps" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["application"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = true 
   create_public_ip          = false
-  assign_bepool             = false
+  # assign_bepool             = false
   create_data_disk          = true
 
  
@@ -586,10 +576,8 @@ module "create_identity" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["identity"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = false
   create_public_ip          = false
-  assign_bepool             = false
+  # assign_bepool             = false
   create_data_disk          = false
   data_disk_size_gb         = "${var.data_disk_size_gb}"
   data_sa_type              = "${var.data_sa_type}"
@@ -621,8 +609,6 @@ module "create_toolsclient" {
   enable_accelerated_networking     = "${var.enable_accelerated_networking}"
   vnet_subnet_id            = "${module.create_subnets.subnet_ids["client"]}"
   boot_diag_SA_endpoint     = "${module.create_boot_sa.boot_diagnostics_account_endpoint}"
-  create_vm                 = true
-  create_av_set             = false
   create_public_ip          = false
   assign_bepool             = false
   create_data_disk          = true

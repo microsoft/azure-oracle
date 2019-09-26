@@ -106,18 +106,18 @@ variable "elastic_instance_count" {
   default = 2
 }
 variable "prosched_instance_count" {
-  description = "elastic instance count"
+  description = "prosched instance count"
   default = 2
 }
 
 variable "toolsclient_instance_count" {
-  description = "elastic instance count"
+  description = "toolsclient instance count"
   default = 1
 }
 
 variable "identity_instance_count" {
-  description = "elastic instance count"
-  default = 1
+  description = "idenity instance count"
+  default = 0
 }
 
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
@@ -125,6 +125,7 @@ variable "identity_instance_count" {
 variable "vm_size" {
     default = "Standard_D2_v2"
     # default = "Standard_E16-8s_v3"
+    # default = "Standard_A1_v2"
 }
 variable "os_publisher" {
     default = "Oracle"
