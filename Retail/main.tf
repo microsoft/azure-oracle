@@ -136,7 +136,7 @@ module "create_networkSGsForBastion" {
     source = "./modules/network/nsgWithRules"
 
     nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-bastionftp"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"    
     subnet_id           = "${module.create_subnets.subnet_names["bastion-ftp"]}"
@@ -148,7 +148,7 @@ module "create_networkSGsForApplication" {
     source = "./modules/network/nsgWithRules"
 
     nsg_name = "${azurerm_virtual_network.primary_vnet.name}-nsg-application"    
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
     location = "${var.location}"
     tags = "${var.tags}"    
     subnet_id = "${module.create_subnets.subnet_names["application"]}"
@@ -160,7 +160,7 @@ module "create_networkSGsForIdentity" {
     source = "./modules/network/nsgWithRules"
 
     nsg_name            = "${azurerm_virtual_network.primary_vnet.name}-nsg-identity"    
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    resource_group_name = "${azurerm_resource_group.vnet_rg.name}"
     location            = "${var.location}"
     tags                = "${var.tags}"
     subnet_id           = "${module.create_subnets.subnet_names["identity"]}"

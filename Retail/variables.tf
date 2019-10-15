@@ -46,7 +46,7 @@ variable "compute_instance_count" {
 
 
 variable "vm_size" {
-    default = "Standard_D2_V2"
+    default = "Standard_F4s"
 }
 variable "os_publisher" {
     default = "Oracle"
