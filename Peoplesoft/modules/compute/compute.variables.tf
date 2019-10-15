@@ -31,7 +31,7 @@ variable "os_version" {
 }
 variable "storage_account_type" {
 }
-variable "compute_boot_volume_size_in_gb" {
+variable "os_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
 }
 variable "data_disk_size_gb" {

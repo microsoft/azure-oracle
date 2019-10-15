@@ -52,80 +52,20 @@ variable "compute_hostname_prefix" {
  description = "Application server host resource prefix"
  default = "diag-sa"
 }
-variable "compute_hostname_prefix_app" {
-  description = "Application server host resource prefix"
-  default = "app"
-}
-variable "compute_hostname_prefix_bastion" {
-  description = "Bastion server host resource prefix"
-  default = "bastion"
-}
 
-variable "compute_hostname_prefix_web" {
-  description = "Web server host resource prefix"
-  default = "webserver"
-}
-
-variable "compute_hostname_prefix_es" {
-  description = "Elastic Search server host resource prefix"
-  default = "es"
-}
-
-variable "compute_hostname_prefix_ps" {
-  description = "Process server host resource prefix"
-  default = "ps"
-}
-
-variable "compute_hostname_prefix_tc" {
-  description = "Tools Client server host resource prefix"
-  default = "tc"
-}
-
-variable "compute_hostname_prefix_id" {
-  description = "Identity server host resource prefix"
-  default = "id"
-}
 
 # Set instance counts. 
 #Min should be two for Application, Webserver, Elastic and ProSched due to Availablity Set usage.
 variable "compute_instance_count" {
-  description = "Application instance count"
+  description = "Instance count for VMs"
   default = 2
-}
-variable "bastion_instance_count" {
-  description = "Bastion instance count"
-  default = 1
-}
-
-variable "webserver_instance_count" {
-  description = "Webserver instance count"
-  default = 2
-}
-variable "elastic_instance_count" {
-  description = "elastic instance count"
-  default = 2
-}
-variable "prosched_instance_count" {
-  description = "prosched instance count"
-  default = 2
-}
-
-variable "toolsclient_instance_count" {
-  description = "toolsclient instance count"
-  default = 1
-}
-
-variable "identity_instance_count" {
-  description = "idenity instance count"
-  default = 0
 }
 
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
 
 variable "vm_size" {
-    default = "Standard_D2_v2"
-    # default = "Standard_E16-8s_v3"
-    # default = "Standard_A1_v2"
+    # default = "Standard_D2_v2"
+    default = "Standard_E16-8s_v3"
 }
 variable "os_publisher" {
     default = "Oracle"
@@ -145,38 +85,11 @@ variable "storage_account_type" {
 }
 
 # Set boot volume size for each instance type
-variable "compute_boot_volume_size_in_gb" {
+variable "os_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
   default = 128
 }
 
-variable "bastion_boot_volume_size_in_gb" {
-  description = "Boot volume size of bastion instance"
-  default = 128
-}
-
-variable "webserver_boot_volume_size_in_gb" {
-  description = "Boot volume size of webserver instance"
-  default = 128
-}
-
-variable "elastic_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
-variable "prosched_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
-variable "toolsclient_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
-
-variable "identity_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
 variable "data_disk_size_gb" {
     default = 256
 }
@@ -197,33 +110,6 @@ variable "compute_ssh_public_key" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "bastion_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "webserver_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "elastic_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-variable "prosched_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-variable "toolsclient_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "identity_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
 variable "nb_instances" {
     default = 1
 }

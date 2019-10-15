@@ -31,7 +31,7 @@ variable "os_version" {
 }
 variable "storage_account_type" {
 }
-variable "compute_boot_volume_size_in_gb" {
+variable "os_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
 }
 variable "data_disk_size_gb" {
@@ -74,15 +74,10 @@ variable "public_ip_address_allocation" {
 variable "ip_sku" {
     default = "Standard"
 }
-variable "create_av_set" {
 
-}
 variable "create_data_disk" {
 
 }
 variable "assign_bepool" {
 
-}
-variable "create_vm" {
-  
 }

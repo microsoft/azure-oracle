@@ -28,7 +28,7 @@ resource "azurerm_virtual_machine" "compute_avset" {
   resource_group_name           = "${var.resource_group_name}"
   availability_set_id           = "${azurerm_availability_set.compute.id}"
   vm_size                       = "${var.vm_size}"
-  network_interface_ids         = ["${element(azurerm_network_interface.compute.*.id, count.index)}"]
+  network_interface_ids         = ["${element(concat(azurerm_network_interface.compute_private.*.id, azurerm_network_interface.compute_public.*.id), count.index)}"]
   delete_os_disk_on_termination = "true"
 
 # Add cloud init
@@ -43,7 +43,7 @@ resource "azurerm_virtual_machine" "compute_avset" {
     name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
-    disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
+    disk_size_gb      = "${var.os_volume_size_in_gb}"
     managed_disk_type = "${var.storage_account_type}"
   }
 
@@ -78,7 +78,7 @@ resource "azurerm_virtual_machine" "compute_az" {
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   vm_size                       = "${var.vm_size}"
-  network_interface_ids         = ["${element(azurerm_network_interface.compute.*.id, count.index)}"]
+  network_interface_ids         = ["${element(concat(azurerm_network_interface.compute_private.*.id, azurerm_network_interface.compute_public.*.id), count.index)}"]
   delete_os_disk_on_termination = "true"
 
   # Add cloud init
@@ -93,7 +93,7 @@ resource "azurerm_virtual_machine" "compute_az" {
     name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
-    disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
+    disk_size_gb      = "${var.os_volume_size_in_gb}"
     managed_disk_type = "${var.storage_account_type}"
   }
 
@@ -129,7 +129,7 @@ resource "azurerm_virtual_machine" "compute_single" {
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"
   vm_size                       = "${var.vm_size}"
-  network_interface_ids         = ["${element(azurerm_network_interface.compute.*.id, count.index)}"]
+  network_interface_ids         = ["${element(concat(azurerm_network_interface.compute_private.*.id, azurerm_network_interface.compute_public.*.id), count.index)}"]
   delete_os_disk_on_termination = "true"
 
   # Add cloud init
@@ -144,7 +144,7 @@ resource "azurerm_virtual_machine" "compute_single" {
     name              = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-OS"
     create_option     = "FromImage"
     caching           = "ReadWrite"
-    disk_size_gb      = "${var.compute_boot_volume_size_in_gb}"
+    disk_size_gb      = "${var.os_volume_size_in_gb}"
     managed_disk_type = "${var.storage_account_type}"
   }
 
@@ -165,27 +165,12 @@ resource "azurerm_virtual_machine" "compute_single" {
   }
 
   tags = "${var.tags}"
-  # zones = ["${contains(local.availability_zones_list, var.location) == true ? (count.index % 3) + 1 : 1}"]
 
   boot_diagnostics {
     enabled     = "true"
     storage_uri = "${var.boot_diag_SA_endpoint}"
   }
 }
-
-
- # Data Disk Attachements (All VMS)
-# resource "azurerm_managed_disk" "vm_data_disks" {
-#     name                 = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-disk-data-01"  
-#     location             = "${var.location}"
-#     resource_group_name  = "${var.resource_group_name}"
-#     storage_account_type = "${var.storage_account_type}"
-#     create_option        = "Empty"
-#     disk_size_gb         = "${var.data_disk_size_gb}"
-#     # count                = "${var.create_data_disk}"
-#     count                = "${(var.compute_instance_count * var.create_data_disk) * var.create_vm}"
-
-# }
 
 resource "azurerm_managed_disk" "vm_data_disks-az" {
     name                 = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-data-disk"
@@ -236,8 +221,25 @@ resource "azurerm_virtual_machine_extension" "vm_disk_mount" {
 
 # Networking
 
-resource "azurerm_network_interface" "compute" {
-  count                         = "${var.compute_instance_count}"
+resource "azurerm_network_interface" "compute_public" {
+  count                         = "${(var.create_public_ip) * var.compute_instance_count}"
+  name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
+  location                      = "${var.location}"
+  resource_group_name           = "${var.resource_group_name}"
+  enable_accelerated_networking = "${var.enable_accelerated_networking}"
+
+  ip_configuration {
+    name                          = "ipconfig${count.index}"
+    subnet_id                     = "${var.vnet_subnet_id}"
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${element(azurerm_public_ip.compute.*.id, count.index)}"
+  }
+
+  tags = "${var.tags}"
+}
+
+resource "azurerm_network_interface" "compute_private" {
+  count                         = "${(1 - var.create_public_ip) * var.compute_instance_count}"
   name                          = "${var.compute_hostname_prefix}-${format("%.02d",count.index + 1)}-nic"  
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group_name}"

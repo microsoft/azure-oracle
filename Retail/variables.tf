@@ -6,8 +6,17 @@ variable "subscription_id" {
     description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
 }
 
+
+variable "client_secret" {
+  
+}
+
+variable "client_id" {
+}
+
+
 variable "resource_group_name" {
-    default = "retail-rg"
+    default = "retail-rg-vms"
 }
 
 variable "vnet_resource_group_name" {
@@ -30,48 +39,10 @@ variable "tags" {
   }
 }
 
-variable "compute_hostname_prefix_bastion" {
-  description = "Application server host resource prefix"
-  default = "bastion"
-}
-
-variable "compute_hostname_prefix_ftp" {
-  description = "SFTP server host resource prefix"
-  default = "sftp"
-}
-
-variable "compute_hostname_prefix_app" {
-  description = "AppA server host resource prefix"
-  default = "app"
-}
-variable "compute_hostname_prefix_idm" {
-  description = "AppB server host resource prefix"
-  default = "idm"
-}
-variable "compute_hostname_prefix_integ" {
-  description = "AppB server host resource prefix"
-  default = "integ"
-}
-variable "compute_hostname_prefix_RIA" {
-  description = "RIA server host resource prefix"
-  default = "RIA"
-}
-
-
 variable "compute_instance_count" {
   description = "Application instance count"
   default = 2
 }
-variable "bastion_instance_count" {
-  description = "Bastion instance count"
-  default = 1
-}
-
-variable "ftp_instance_count" {
-  description = "Bastion instance count"
-  default = 1
-}
-
 
 
 variable "vm_size" {
@@ -93,13 +64,8 @@ variable "os_version" {
 variable "storage_account_type" {
     default = "Standard_LRS"
 }
-variable "compute_boot_volume_size_in_gb" {
-  description = "Boot volume size of compute instance"
-  default = 128
-}
-
-variable "bastion_boot_volume_size_in_gb" {
-  description = "Boot volume size of bastion instance"
+variable "os_volume_size_in_gb" {
+  description = "Boot volume size of instance"
   default = 128
 }
 
@@ -121,15 +87,6 @@ variable "compute_ssh_public_key" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "bastion_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "ftp_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
 
 variable "enable_accelerated_networking" {
     default = "false"
@@ -148,9 +105,7 @@ variable "frontend_name" {
 variable "create_public_ip" {
   default = false
 }
-variable "create_av_set" {
-  default = true
-}
+
 variable "create_data_disk" {
   default = true
 }
