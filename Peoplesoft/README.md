@@ -3,9 +3,8 @@ These Terraform modules allow you to create and provision infrastructure for Peo
 
 # Prerequisites
 
-1. Download and install Terraform
-2. Download and install Azure CLI
-3. An Azure subscription
+1. Download and install Terraform v.11.x
+2. An Azure subscription
 
 # Modules
 The modules consist of:

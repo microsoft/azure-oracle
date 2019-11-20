@@ -31,7 +31,7 @@ variable "os_version" {
 }
 variable "storage_account_type" {
 }
-variable "compute_boot_volume_size_in_gb" {
+variable "os_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
 }
 variable "data_disk_size_gb" {
@@ -61,15 +61,9 @@ variable "boot_diag_SA_endpoint" {
 
 }
 
-variable "create_av_set" {
+# variable "assign_bepool" {
 
-}
-variable "create_data_disk" {
-
-}
-variable "assign_bepool" {
-
-}
+# }
 variable "create_public_ip" {
 
 }
@@ -81,4 +75,8 @@ variable "public_ip_address_allocation" {
 }
 variable "backendpool_id" {
   default = "0"
+}
+
+variable "create_data_disk" {
+  default = true
 }

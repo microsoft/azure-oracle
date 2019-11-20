@@ -5,8 +5,20 @@ variable "subscription_id" {
     description = "Azure Subscription GUID for the provisioning subscription. e.g., 666988bf-86f1-43af-91ab-2d7cd011db47"
 }
 
+variable "client_secret" {
+  
+}
+
+variable "client_id" {
+}
+
 variable "resource_group_name" {
-    default = "ps-rg"
+    default = "ps-rg-vms"
+}
+
+variable "vnet_resource_group_name" {
+    default = "ps-rg-vnet"
+    description = "Name of the Resource Group where the VNET is/will be located. This can be same as the app resource group or different."
 }
 variable "lb_sku" {
     default = "Standard"
@@ -34,74 +46,26 @@ variable "create_data_disk" {
   default = true
 }
 
+
 # Host Name Prefixes
 variable "compute_hostname_prefix" {
  description = "Application server host resource prefix"
  default = "diag-sa"
 }
-variable "compute_hostname_prefix_app" {
-  description = "Application server host resource prefix"
-  default = "app"
-}
-variable "compute_hostname_prefix_bastion" {
-  description = "Application server host resource prefix"
-  default = "bastion"
-}
 
-variable "compute_hostname_prefix_web" {
-  description = "Web server host resource prefix"
-  default = "webserver"
-}
-
-variable "compute_hostname_prefix_es" {
-  description = "Elastic Search server host resource prefix"
-  default = "es"
-}
-
-
-variable "compute_hostname_prefix_ps" {
-  description = "Elastic Search server host resource prefix"
-  default = "ps"
-}
-
-variable "compute_hostname_prefix_tc" {
-  description = "Elastic Search server host resource prefix"
-  default = "tc"
-}
 
 # Set instance counts. 
 #Min should be two for Application, Webserver, Elastic and ProSched due to Availablity Set usage.
 variable "compute_instance_count" {
-  description = "Application instance count"
+  description = "Instance count for VMs"
   default = 2
-}
-variable "bastion_instance_count" {
-  description = "Bastion instance count"
-  default = 1
-}
-
-variable "webserver_instance_count" {
-  description = "Webserver instance count"
-  default = 2
-}
-variable "elastic_instance_count" {
-  description = "elastic instance count"
-  default = 2
-}
-variable "prosched_instance_count" {
-  description = "elastic instance count"
-  default = 2
-}
-
-variable "toolsclient_instance_count" {
-  description = "elastic instance count"
-  default = 1
 }
 
 # This template currently uses the same VM size for all instances, this may need to be customized futher.
 
 variable "vm_size" {
-    default = "Standard_D2_V2"
+    # default = "Standard_D2_v2"
+    default = "Standard_E16-8s_v3"
 }
 variable "os_publisher" {
     default = "Oracle"
@@ -121,38 +85,16 @@ variable "storage_account_type" {
 }
 
 # Set boot volume size for each instance type
-variable "compute_boot_volume_size_in_gb" {
+variable "os_volume_size_in_gb" {
   description = "Boot volume size of compute instance"
   default = 128
 }
 
-variable "bastion_boot_volume_size_in_gb" {
-  description = "Boot volume size of bastion instance"
-  default = 128
-}
-
-variable "webserver_boot_volume_size_in_gb" {
-  description = "Boot volume size of webserver instance"
-  default = 128
-}
-
-variable "elastic_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
-variable "prosched_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
-variable "toolsclient_boot_volume_size_in_gb" {
-  description = "Boot volume size of elastic search instance"
-  default = 128
-}
 variable "data_disk_size_gb" {
-    default = 128
+    default = 256
 }
 variable "data_sa_type" {
-    default = "Standard_LRS"
+    default = "StandardSSD_LRS"
 }
 variable "admin_username" {
     default = "sysadmin"
@@ -168,28 +110,6 @@ variable "compute_ssh_public_key" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "bastion_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "webserver_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "elastic_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-variable "prosched_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
-variable "toolsclient_ssh_public_key" {
-  description = "Path to the public key to be used for ssh access to the VM."
-  default     = "~/.ssh/id_rsa.pub"
-}
 variable "nb_instances" {
     default = 1
 }
@@ -200,11 +120,23 @@ variable "vnet_name" {
     default = "ps-vnet"
 }
 variable "vnet_cidr" {
-    default = "10.2.0.0/16"
+    default =  "10.2.0.0/16"
+    description = "Enter a '0' if the VNET already exists. Currently, only VNETs with 1 address space are supported."
 }
 
+variable "oci_vcn_name" {
+}
 
+variable "oci_subnet_name" {
 
+}
+
+variable "db_scan_ip_addresses" {
+
+}
+variable "db_name" {
+  
+}
 
 
 

@@ -2,12 +2,12 @@
 ## Azure ARM Provider
 #########################
 provider "azurerm" {
-    version= ">=1.21.0"
+    version= ">=1.28.0"
     tenant_id       = "${var.tenant_id}"
     subscription_id = "${var.subscription_id}"
-    #TODO: for testing, leaving these out ... easier to sign in via CLI.
-  #  client_id       = "${var.client_id}"
-  #  client_secret   = "${var.client_secret}"   
+    client_id       = "${var.client_id}"
+    client_secret   = "${var.client_secret}" 
+    partner_id      = "1ec53238-c562-5ff9-89f6-558763be3779"  
 }
 
 provider "random" {

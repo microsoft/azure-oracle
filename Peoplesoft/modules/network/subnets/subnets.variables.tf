@@ -14,5 +14,7 @@ variable "nsg_ids_len" {
 # HouseKeeping...
 variable "resource_group_name" {}
 variable "vnet_name" {}
+variable "vnet_cidr" {}
+
 
 # Note: subnets don't include resource tags.
