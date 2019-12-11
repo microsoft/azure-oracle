@@ -126,6 +126,24 @@ resource "azurerm_virtual_network" "primary_vnet" {
 
 }
 
+#################################################
+# Setting up a private DNS Zone & A-records for OCI DNS resolution
+ 
+resource "azurerm_dns_zone" "oci_vcn_dns" {
+ name = "${var.oci_vcn_name}.oraclevcn.com"
+ resource_group_name = "${azurerm_resource_group.rg.name}"
+}
+ 
+# Setting up A-records for the DB
+ 
+resource "azurerm_dns_a_record" "db_a_record" {
+ name = "${var.db_name}-scan.${var.oci_subnet_name}"
+ resource_group_name = "${azurerm_resource_group.rg.name}"
+ zone_name = "${azurerm_dns_zone.oci_vcn_dns.name}"
+ ttl = 3600
+ records = ["${var.db_scan_ip_addresses}"]
+}
+
 
 
 ###############################################################

@@ -116,6 +116,19 @@ variable "prefix" {
 }
 
 
+variable "oci_vcn_name" {
+}
+
+variable "oci_subnet_name" {
+
+}
+
+variable "db_scan_ip_addresses" {
+
+}
+variable "db_name" {
+  
+}
 
 
 
