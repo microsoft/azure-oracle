@@ -1,1 +1,70 @@
-Initial readme
+Oracle StandAlone database deployment
+Terraform deployment to build a Azure virtual machine by passing variables to allow for a dynamic build. Intent is to give flexibility to the engineer to pick a vm size and disk configuration and automatically deploy the oracle database fully configured. Disk configuration includes size, number of disks, type of disks, and caching for disks.
+
+Dependencies
+Engineer deploying needs to have the following:
+
+Terraform
+Visual Studio Code
+Clone of GitHub Repo
+Download of Grid Infrastructure stored into an Azure Storage Account.
+Creation of a SAS token to leverage file referenced above.
+Build and Test
+Prior to deploying the Oracle you will want to look over and confirm/modify variables within the deployment.
+
+Template Variable File
+A Sample variable file has been provided with the required variables which should be configured. Variable file is named oracle_template.tfvars. Any additional variables you would like to change can be added to this file. Once updated you can run the following: terraform init -var-file=oracle_template.tfvars followed by terraform apply -var-file=oracle_template.tfvars. Its recommended to create a copy of the variables file and change the template to your name or something else to identify it. This will prevent it from be merged back to github as there is an ignore for all other .tvars files. After Terraform has been deployed there is an additional step to deploy the oracle configuration. Connect to the VM with Bastion, which was created as part of the deployment. If you accepted the defaults the username is azureadmin, for authentication select SSH Private Key from Azure Key Vault. The Subscription, KevVault and Secret should auto-select. Click Connect. You should now be in the VM. Type ls, you should see two files in your home directory, Configure-ASM-server.yml and deployoracle.sh. The yml file is the ansible playbook while the sh file is the command with required parameters to deploy the playbook. Execute by typing . ./deployoracle.sh the playbook will deploy oracle and should complete in around 15min. You are now ready to connect to oracle run some tests or create tables.
+
+Variables which must be updated
+grid_password
+oracle_password
+root_password
+oracle_sys_password
+oracle_system_password
+oracle_monitor_password
+Variables which can be updated if you deviated from default
+vnet_name default: vnet-lz-spk-eastus2
+key_vault_name default: kv-labiac-eastus2
+location default: eastus2
+admin_username default: azureadmin
+vm_name default: oracledev01
+vm_private_ip_addr default: 10.1.1.15
+oracle_database_name default: mytestdb
+Variables which can be updated for different performance tests
+vm_size default: Standard_DS11_v2
+asm_disk_size default: 64
+asm_lun_start default: 10
+asm_disk_count default: 1
+asm_disk_cache default: ReadWrite
+asm_disk_prefix default: asm-disk
+data_disk_size default: 512
+data_lun_start default: 20
+data_disk_count default: 2
+data_disk_cache default: ReadOnly
+data_disk_prefix default: data-disk
+redo_disk_size default: 128
+redo_lun_start default: 60
+redo_disk_count default: 2
+redo_disk_cache default: ReadWrite
+redo_disk_prefix default: redo-disk
+storage_account_type default: StandardSSD_LRS
+TODO Items:
+Within the Ansible yml there are TODO tags of items which could be made variables or addressed, however have not been done. They are documented below for future reference.
+
+While there is a variable for lun start its currently not leveraged everywhere. Disk discovery is done based on lun number. Currently hardcoded in ansible for the following: ASM lun 10-19 Data lun 20-59 Redo lun 60-69 If there is a need for more disks for either these will need to be manually adjusted. Lines 73 - 84 of Configure-ASM-server.yml to be specific.
+Linux Swap Size is currently set to 13435 as a variable which is the correct swap size for the virtual machine image which is set as default. If Vm image is changed this variable also needs to be updated to reflect the correct swap size.
+Several of the configurations required by oracle require shell scripts to execute oracle commands. As a result some of these commands can only be run once. Commands should be augmented with checks before they run which would make the terraform and ansible re-runnable. Lines referenced are the following 206 and 222 - 245.
+ASM disk count. If you pass a disk count greater than 1 Terraform will create the additional disks, however oracle will only configure the first disk in the disk pool. To address this the response file would need to have each disk added by with its full path.
+© 2021 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+
